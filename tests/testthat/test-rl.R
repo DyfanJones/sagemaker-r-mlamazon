@@ -129,7 +129,7 @@ sagemaker_session$call_args("compile_model")
   instance_type=NULL,
   base_job_name=NULL,
   ...){
-  `%||%` <- R6sagemaker:::`%||%`
+  `%||%` <- R6sagemaker.mlframework:::`%||%`
   return(RLEstimator$new(
     entry_point=SCRIPT_PATH,
     toolkit=toolkit,
@@ -165,7 +165,7 @@ test_that("test create rl model", {
 
   model = rl$create_model()
 
-  supported_versions = R6sagemaker:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
+  supported_versions = R6sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
   framework_version = supported_versions[[coach_tensorflow_version]][[RLFramework$TENSORFLOW]]
 
   expect_true(inherits(model, "TensorFlowModel"))
@@ -198,7 +198,7 @@ test_that("test create mxnet model", {
 
   model$.container_log_level
 
-  supported_versions = R6sagemaker:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
+  supported_versions = R6sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
   framework_version = supported_versions[[coach_mxnet_version]][[RLFramework$MXNET]]
 
   expect_true(inherits(model, "MXNetModel"))
@@ -377,7 +377,7 @@ test_that("test training image uri", {
 test_that("test attach",{
   training_image = sprintf("1.dkr.ecr.us-west-2.amazonaws.com/sagemaker-rl-%s:%s%s-cpu-py3",
     RLFramework$MXNET, RLToolkit$COACH, coach_mxnet_version)
-  supported_versions = R6sagemaker:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
+  supported_versions = R6sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
   framework_version = supported_versions[[coach_mxnet_version]][[RLFramework$MXNET]]
   returned_job_description = list(
     "AlgorithmSpecification"=list("TrainingInputMode"="File", "TrainingImage"=training_image),

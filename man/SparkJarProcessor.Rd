@@ -7,7 +7,7 @@
 Handles Amazon SageMaker processing tasks for jobs using Spark with Java or Scala Jars.
 }
 \section{Super classes}{
-\code{\link[R6sagemaker.common:Processor]{R6sagemaker.common::Processor}} -> \code{\link[R6sagemaker.common:ScriptProcessor]{R6sagemaker.common::ScriptProcessor}} -> \code{\link[R6sagemaker.mlamazon:.SparkProcessorBase]{R6sagemaker.mlamazon::.SparkProcessorBase}} -> \code{SparkJarProcessor}
+\code{\link[R6sagemaker.common:Processor]{R6sagemaker.common::Processor}} -> \code{\link[R6sagemaker.common:ScriptProcessor]{R6sagemaker.common::ScriptProcessor}} -> \code{\link[R6sagemaker.mlframework:.SparkProcessorBase]{R6sagemaker.mlframework::.SparkProcessorBase}} -> \code{SparkJarProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -21,8 +21,8 @@ Handles Amazon SageMaker processing tasks for jobs using Spark with Java or Scal
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="Processor" data-id="format">}\href{../../R6sagemaker.common/html/Processor.html#method-format}{\code{R6sagemaker.common::Processor$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlamazon" data-topic=".SparkProcessorBase" data-id="start_history">}\href{../../R6sagemaker.mlamazon/html/.SparkProcessorBase.html#method-start_history}{\code{R6sagemaker.mlamazon::.SparkProcessorBase$start_history()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlamazon" data-topic=".SparkProcessorBase" data-id="terminate_history_server">}\href{../../R6sagemaker.mlamazon/html/.SparkProcessorBase.html#method-terminate_history_server}{\code{R6sagemaker.mlamazon::.SparkProcessorBase$terminate_history_server()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlframework" data-topic=".SparkProcessorBase" data-id="start_history">}\href{../../R6sagemaker.mlframework/html/.SparkProcessorBase.html#method-start_history}{\code{R6sagemaker.mlframework::.SparkProcessorBase$start_history()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlframework" data-topic=".SparkProcessorBase" data-id="terminate_history_server">}\href{../../R6sagemaker.mlframework/html/.SparkProcessorBase.html#method-terminate_history_server}{\code{R6sagemaker.mlframework::.SparkProcessorBase$terminate_history_server()}}\out{</span>}
 }
 \out{</details>}
 }
