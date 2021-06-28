@@ -1,4 +1,4 @@
-Package: R6sagemaker.mlamazon
+Package: R6sagemaker.mlframework
 Type: Package
 Title: R6sagemaker machine learning developed by amazon
 Version: 0.1.0
