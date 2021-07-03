@@ -264,14 +264,11 @@ AutoML = R6Class("AutoML",
       inference_containers = self$validate_and_update_inference_response(inference_containers, inference_response_keys)
 
       # construct Model objects
-      models = list()
-
-      for (container in inference_containers){
+      models = lapply(inference_containers, function(container){
         image_uri = container$Image
         model_data = container$ModelDataUrl
         env = container$Environment
-
-        model = Model$new(
+        Model$new(
           image_uri=image_uri,
           model_data=model_data,
           role=self$role,
@@ -281,8 +278,7 @@ AutoML = R6Class("AutoML",
           enable_network_isolation=enable_network_isolation,
           model_kms_key=model_kms_key
         )
-        models = c(models, model)
-      }
+      })
 
       pipeline = R6sagemaker.workflow::PipelineModel$new(
         models=models,
