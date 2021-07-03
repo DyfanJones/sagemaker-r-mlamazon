@@ -21,23 +21,22 @@ HuggingFace = R6Class("HuggingFace",
     #' @param py_version (str): Python version you want to use for executing your model training
     #'              code. Defaults to ``None``. Required unless ``image_uri`` is provided.  List
     #'              of supported versions:
-    #'              https://github.com/aws/sagemaker-python-sdk#huggingface-sagemaker-estimators
+    #'              \url{https://github.com/aws/sagemaker-python-sdk#huggingface-sagemaker-estimators}
     #' @param entry_point (str): Path (absolute or relative) to the Python source
     #'              file which should be executed as the entry point to training.
     #'              If ``source_dir`` is specified, then ``entry_point``
     #'              must point to a file located at the root of ``source_dir``.
     #' @param transformers_version (str): Transformers version you want to use for
-    #'              executing your model training code. Defaults to ``None``. Required unless
-    #'              ``image_uri`` is provided. List of supported versions:
-    #'              https://github.com/aws/sagemaker-python-sdk#huggingface-sagemaker-estimators.
+    #'              executing your model training code. Defaults to ``None``.  Required unless
+    #'              ``image_uri`` is provided. The current supported version is ``4.6.1``.
     #' @param tensorflow_version (str): TensorFlow version you want to use for
     #'              executing your model training code. Defaults to ``None``. Required unless
     #'              ``pytorch_version`` is provided. List of supported versions:
-    #'              https://github.com/aws/sagemaker-python-sdk#huggingface-sagemaker-estimators.
+    #'              \url{https://github.com/aws/sagemaker-python-sdk#huggingface-sagemaker-estimators}.
     #' @param pytorch_version (str): PyTorch version you want to use for
     #'              executing your model training code. Defaults to ``None``. Required unless
     #'              ``tensorflow_version`` is provided. List of supported versions:
-    #'              https://github.com/aws/sagemaker-python-sdk#huggingface-sagemaker-estimators.
+    #'              \url{https://github.com/aws/sagemaker-python-sdk#huggingface-sagemaker-estimators}.
     #' @param source_dir (str): Path (absolute, relative or an S3 URI) to a directory
     #'              with any other training source code dependencies aside from the entry
     #'              point file (default: None). If ``source_dir`` is an S3 URI, it must
