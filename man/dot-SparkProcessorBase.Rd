@@ -23,6 +23,7 @@ Base class for either PySpark or SparkJars.
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="Processor" data-id="format">}\href{../../R6sagemaker.common/html/Processor.html#method-format}{\code{R6sagemaker.common::Processor$format()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="ScriptProcessor" data-id="get_run_args">}\href{../../R6sagemaker.common/html/ScriptProcessor.html#method-get_run_args}{\code{R6sagemaker.common::ScriptProcessor$get_run_args()}}\out{</span>}
 }
 \out{</details>}
 }
