@@ -35,6 +35,8 @@ Collate:
     'chainer_model.R'
     'chainer_estimator.R'
     'huggingface_estimator.R'
+    'huggingface_model.R'
+    'huggingface_processing.R'
     'mxnet_default.R'
     'mxnet_model.R'
     'mxnet_estimator.R'
