@@ -11,8 +11,8 @@ The implementation of
              ``predict()`` returns a csv output, comma separated if the output is a
              list.
 }
-\section{Super class}{
-\code{\link[R6sagemaker.mlcore:Predictor]{R6sagemaker.mlcore::Predictor}} -> \code{SparkMLPredictor}
+\section{Super classes}{
+\code{\link[R6sagemaker.mlcore:PredictorBase]{R6sagemaker.mlcore::PredictorBase}} -> \code{\link[R6sagemaker.mlcore:Predictor]{R6sagemaker.mlcore::Predictor}} -> \code{SparkMLPredictor}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -26,6 +26,7 @@ The implementation of
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="delete_endpoint">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-delete_endpoint}{\code{R6sagemaker.mlcore::Predictor$delete_endpoint()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="delete_model">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-delete_model}{\code{R6sagemaker.mlcore::Predictor$delete_model()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="delete_predictor">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-delete_predictor}{\code{R6sagemaker.mlcore::Predictor$delete_predictor()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="disable_data_capture">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-disable_data_capture}{\code{R6sagemaker.mlcore::Predictor$disable_data_capture()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="enable_data_capture">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-enable_data_capture}{\code{R6sagemaker.mlcore::Predictor$enable_data_capture()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="endpoint_context">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-endpoint_context}{\code{R6sagemaker.mlcore::Predictor$endpoint_context()}}\out{</span>}
