@@ -7,7 +7,14 @@
 Handles Amazon SageMaker processing tasks for jobs using scikit-learn.
 }
 \section{Super classes}{
-\code{\link[R6sagemaker.common:Processor]{R6sagemaker.common::Processor}} -> \code{\link[R6sagemaker.common:ScriptProcessor]{R6sagemaker.common::ScriptProcessor}} -> \code{SKLearnProcessor}
+\code{\link[R6sagemaker.common:Processor]{R6sagemaker.common::Processor}} -> \code{\link[R6sagemaker.common:ScriptProcessor]{R6sagemaker.common::ScriptProcessor}} -> \code{\link[R6sagemaker.common:FrameworkProcessor]{R6sagemaker.common::FrameworkProcessor}} -> \code{SKLearnProcessor}
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{estimator_cls}}{Estimator object}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -20,8 +27,8 @@ Handles Amazon SageMaker processing tasks for jobs using scikit-learn.
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="Processor" data-id="format">}\href{../../R6sagemaker.common/html/Processor.html#method-format}{\code{R6sagemaker.common::Processor$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="ScriptProcessor" data-id="get_run_args">}\href{../../R6sagemaker.common/html/ScriptProcessor.html#method-get_run_args}{\code{R6sagemaker.common::ScriptProcessor$get_run_args()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="ScriptProcessor" data-id="run">}\href{../../R6sagemaker.common/html/ScriptProcessor.html#method-run}{\code{R6sagemaker.common::ScriptProcessor$run()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="FrameworkProcessor" data-id="get_run_args">}\href{../../R6sagemaker.common/html/FrameworkProcessor.html#method-get_run_args}{\code{R6sagemaker.common::FrameworkProcessor$get_run_args()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="FrameworkProcessor" data-id="run">}\href{../../R6sagemaker.common/html/FrameworkProcessor.html#method-run}{\code{R6sagemaker.common::FrameworkProcessor$run()}}\out{</span>}
 }
 \out{</details>}
 }
@@ -37,10 +44,13 @@ Initialize an ``SKLearnProcessor`` instance. The SKLearnProcessor
   role,
   instance_type,
   instance_count,
+  py_version = "py3",
+  image_uri = NULL,
   command = NULL,
   volume_size_in_gb = 30,
   volume_kms_key = NULL,
   output_kms_key = NULL,
+  code_location = NULL,
   max_runtime_in_seconds = NULL,
   base_job_name = NULL,
   sagemaker_session = NULL,
@@ -53,52 +63,65 @@ Initialize an ``SKLearnProcessor`` instance. The SKLearnProcessor
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{framework_version}}{(str): The version of scikit-learn.}
+\item{\code{framework_version}}{(str): The version of the framework. Value is ignored when
+``image_uri`` is provided.}
 
-\item{\code{role}}{(str): An AWS IAM role name or ARN. The Amazon SageMaker training jobs
-and APIs that create Amazon SageMaker endpoints use this role
-to access training data and model artifacts. After the endpoint
-is created, the inference code might use the IAM role, if it
-needs to access an AWS resource.}
+\item{\code{role}}{(str): An AWS IAM role name or ARN. Amazon SageMaker Processing uses
+this role to access AWS resources, such as data stored in Amazon S3.}
 
-\item{\code{instance_type}}{(str): Type of EC2 instance to use for
-processing, for example, 'ml.c4.xlarge'.}
+\item{\code{instance_type}}{(str): The type of EC2 instance to use for processing, for
+example, 'ml.c4.xlarge'.}
 
-\item{\code{instance_count}}{(int): The number of instances to run
-the Processing job with. Defaults to 1.}
+\item{\code{instance_count}}{(int): The number of instances to run a processing job with.}
 
-\item{\code{command}}{([str]): The command to run, along with any command-line flags.
-Example: ["python3", "-v"]. If not provided, ["python3"] or ["python2"]
-will be chosen based on the py_version parameter.}
+\item{\code{py_version}}{(str): Python version you want to use for executing your
+model training code. One of 'py2' or 'py3'. Defaults to 'py3'. Value
+is ignored when ``image_uri`` is provided.}
 
-\item{\code{volume_size_in_gb}}{(int): Size in GB of the EBS volume to
-use for storing data during processing (default: 30).}
+\item{\code{image_uri}}{(str): The URI of the Docker image to use for the
+processing jobs (default: None).}
 
-\item{\code{volume_kms_key}}{(str): A KMS key for the processing
-volume.}
+\item{\code{command}}{([str]): The command to run, along with any command-line flags
+to *precede* the ```code script```. Example: ["python3", "-v"]. If not
+provided, ["python"] will be chosen (default: None).}
 
-\item{\code{output_kms_key}}{(str): The KMS key id for all ProcessingOutputs.}
+\item{\code{volume_size_in_gb}}{(int): Size in GB of the EBS volume
+to use for storing data during processing (default: 30).}
 
-\item{\code{max_runtime_in_seconds}}{(int): Timeout in seconds.
-After this amount of time Amazon SageMaker terminates the job
-regardless of its current status.}
+\item{\code{volume_kms_key}}{(str): A KMS key for the processing volume (default: None).}
+
+\item{\code{output_kms_key}}{(str): The KMS key ID for processing job outputs (default: None).}
+
+\item{\code{code_location}}{(str): The S3 prefix URI where custom code will be
+uploaded (default: None). The code file uploaded to S3 is
+'code_location/job-name/source/sourcedir.tar.gz'. If not specified, the
+default ``code location`` is 's3://{sagemaker-default-bucket}'}
+
+\item{\code{max_runtime_in_seconds}}{(int): Timeout in seconds (default: None).
+After this amount of time, Amazon SageMaker terminates the job,
+regardless of its current status. If `max_runtime_in_seconds` is not
+specified, the default value is 24 hours.}
 
 \item{\code{base_job_name}}{(str): Prefix for processing name. If not specified,
 the processor generates a default job name, based on the
-training image name and current timestamp.}
+processing image name and current timestamp (default: None).}
 
-\item{\code{sagemaker_session}}{(sagemaker.session.Session): Session object which
-manages interactions with Amazon SageMaker APIs and any other
-AWS services needed. If not specified, the processor creates one
-using the default AWS configuration chain.}
+\item{\code{sagemaker_session}}{(:class:`~sagemaker.session.Session`):
+Session object which manages interactions with Amazon SageMaker and
+any other AWS services needed. If not specified, the processor creates
+one using the default AWS configuration chain (default: None).}
 
-\item{\code{env}}{(dict): Environment variables to be passed to the processing job.}
+\item{\code{env}}{(dict[str, str]): Environment variables to be passed to
+the processing jobs (default: None).}
 
-\item{\code{tags}}{([dict]): List of tags to be passed to the processing job.}
+\item{\code{tags}}{(list[dict]): List of tags to be passed to the processing job
+(default: None). For more, see
+\url{https://docs.aws.amazon.com/sagemaker/latest/dg/API_Tag.html}.}
 
-\item{\code{network_config}}{(sagemaker.network.NetworkConfig): A NetworkConfig
+\item{\code{network_config}}{(:class:`~sagemaker.network.NetworkConfig`):
+A :class:`~sagemaker.network.NetworkConfig`
 object that configures network isolation, encryption of
-inter-container traffic, security group IDs, and subnets.}
+inter-container traffic, security group IDs, and subnets (default: None).}
 }
 \if{html}{\out{</div>}}
 }
