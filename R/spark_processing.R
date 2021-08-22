@@ -147,10 +147,8 @@
      #' @description Starts a Spark history server.
      #' @param spark_event_logs_s3_uri (str): S3 URI where Spark events are stored.
      start_history = function(spark_event_logs_s3_uri=NULL){
-       # TODO: .ecr_login_if_needed function
        if (.ecr_login_if_needed(self$sagemaker_session$paws_session, self$image_uri)){
          LOGGER$info("Pulling spark history server image...")
-         # TODO: .pull_image function
          .pull_image(self$image_uri)}
 
        history_server_env_variables = private$.prepare_history_server_env_variables(
@@ -507,7 +505,7 @@
    # Configure AWS credentials.
    .config_aws_credentials = function(){
       tryCatch({
-         creds = self$sagemaker_session$paws_credentials
+         creds = self$sagemaker_session$paws_session
          access_key = creds$aws_access_key_id
          secret_key = creds$aws_secret_access_key
          token = creds$aws_session_token
