@@ -4,13 +4,13 @@
 #' @include sklearn_estimator.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 
 #' @title SKLearnProcessor Class
 #' @description Handles Amazon SageMaker processing tasks for jobs using scikit-learn.
 #' @export
 SKLearnProcessor = R6Class("SKLearnProcessor",
-  inherit = R6sagemaker.common::FrameworkProcessor,
+  inherit = sagemaker.common::FrameworkProcessor,
   public = list(
 
     #' @field estimator_cls

@@ -4,7 +4,7 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 
 #' @title CandidateEstimator Class
 #' @description A class for SageMaker AutoML Job Candidate

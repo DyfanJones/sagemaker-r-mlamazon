@@ -6,8 +6,8 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.mlcore
+#' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title A Predictor for inference against Chainer Endpoints.
@@ -15,7 +15,7 @@
 #'              multidimensional tensors for Chainer inference.
 #' @export
 ChainerPredictor = R6Class("ChainerPredictor",
-  inherit = R6sagemaker.mlcore::Predictor,
+  inherit = sagemaker.mlcore::Predictor,
   public = list(
 
     #' @description Initialize an ``ChainerPredictor``.
@@ -40,7 +40,7 @@ ChainerPredictor = R6Class("ChainerPredictor",
 #'              ``Endpoint``.
 #' @export
 ChainerModel = R6Class("ChainerModel",
-  inherit = R6sagemaker.common::FrameworkModel,
+  inherit = sagemaker.common::FrameworkModel,
   public = list(
 
     #' @description Initialize an ChainerModel.

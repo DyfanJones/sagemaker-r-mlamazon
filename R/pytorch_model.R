@@ -6,8 +6,8 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.mlcore
+#' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title A Predictor for inference against PyTorch Endpoints.
@@ -15,7 +15,7 @@
 #'              multidimensional tensors for PyTorch inference.
 #' @export
 PyTorchPredictor = R6Class("PyTorchPredictor",
-  inherit = R6sagemaker.mlcore::Predictor,
+  inherit = sagemaker.mlcore::Predictor,
   public = list(
 
     #' @description Initialize an ``PyTorchPredictor``.
@@ -40,7 +40,7 @@ PyTorchPredictor = R6Class("PyTorchPredictor",
 #'              ``Endpoint``.
 #' @export
 PyTorchModel = R6Class("PyTorchModel",
-  inherit = R6sagemaker.common::FrameworkModel,
+  inherit = sagemaker.common::FrameworkModel,
   public = list(
 
     #' @field .LOWEST_MMS_VERSION

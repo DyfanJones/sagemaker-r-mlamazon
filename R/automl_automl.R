@@ -5,8 +5,8 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.workflow
+#' @import sagemaker.common
+#' @import sagemaker.workflow
 #' @import lgr
 
 #' @title AutoML Class
@@ -280,7 +280,7 @@ AutoML = R6Class("AutoML",
         )
       })
 
-      pipeline = R6sagemaker.workflow::PipelineModel$new(
+      pipeline = sagemaker.workflow::PipelineModel$new(
         models=models,
         role=self$role,
         predictor_cls=predictor_cls,
@@ -566,7 +566,7 @@ AutoMLInput = R6Class("AutoMLInput",
 #' @description A class for interacting with CreateAutoMLJob API.
 #' @export
 AutoMLJob = R6Class("AutoMLJob",
-  inherit = R6sagemaker.common::.Job,
+  inherit = sagemaker.common::.Job,
   public = list(
 
     #' @description Initialize AutoMLJob class

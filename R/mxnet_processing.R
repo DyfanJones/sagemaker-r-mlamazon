@@ -4,13 +4,13 @@
 #' @include mxnet_estimator.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 
 #' @title MXNetProcessor class
 #' @description Handles Amazon SageMaker processing tasks for jobs using MXNet containers.
 #' @export
 MXNetProcessor = R6Class("MXNetProcessor",
-  inherit = R6sagemaker.common::FrameworkProcessor,
+  inherit = sagemaker.common::FrameworkProcessor,
   public = list(
 
     #' @field estimator_cls

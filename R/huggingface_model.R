@@ -4,15 +4,15 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.mlcore
+#' @import sagemaker.common
+#' @import sagemaker.mlcore
 
 #' @title A Predictor for inference against Hugging Face Endpoints.
 #' @description This is able to serialize Python lists, dictionaries, and numpy arrays to
 #'             multidimensional tensors for Hugging Face inference.
 #' @export
 HuggingFacePredictor = R6Class("HuggingFacePredictor",
-  inherit = R6sagemaker.mlcore::Predictor,
+  inherit = sagemaker.mlcore::Predictor,
   public = list(
 
     #' @description Initialize an ``HuggingFacePredictor``.
@@ -61,7 +61,7 @@ HuggingFacePredictor = R6Class("HuggingFacePredictor",
 #' @description A Hugging Face SageMaker ``Model`` that can be deployed to a SageMaker ``Endpoint``.
 #' @export
 HuggingFaceModel = R6Class("HuggingFaceModel",
-  inherit = R6sagemaker.common::FrameworkModel,
+  inherit = sagemaker.common::FrameworkModel,
   public = list(
 
     #' @description Initialize a HuggingFaceModel.
@@ -239,7 +239,7 @@ HuggingFaceModel = R6Class("HuggingFaceModel",
     #'              model.
     #' @return str: The appropriate image URI based on the given parameters.
     serving_image_uri = function(){
-      image_uris = R6sagemaker.common:::ImageUris$new()
+      image_uris = sagemaker.common:::ImageUris$new()
       if (image_uris$.__enclos_env__$private$.processor(instance_type, c("cpu", "gpu")) == "gpu"){
         container_version = "cu110-ubuntu18.04"
       } else {

@@ -5,8 +5,8 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.mlcore
+#' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title MXNetPredictor Class
@@ -15,7 +15,7 @@
 #'              multidimensional tensors for MXNet inference.
 #' @export
 MXNetPredictor = R6Class("MXNetPredictor",
-  inherit = R6sagemaker.mlcore::Predictor,
+  inherit = sagemaker.mlcore::Predictor,
   public = list(
 
     #' @description Initialize an ``MXNetPredictor``.
@@ -39,7 +39,7 @@ MXNetPredictor = R6Class("MXNetPredictor",
 #' @description An MXNet SageMaker ``Model`` that can be deployed to a SageMaker ``Endpoint``.
 #' @export
 MXNetModel = R6Class("MXNetModel",
-  inherit = R6sagemaker.common::FrameworkModel,
+  inherit = sagemaker.common::FrameworkModel,
   public = list(
 
     #' @field .LOWEST_MMS_VERSION

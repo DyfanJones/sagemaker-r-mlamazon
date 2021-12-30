@@ -7,7 +7,7 @@
 Handles Amazon SageMaker processing tasks for jobs using Spark with Java or Scala Jars.
 }
 \section{Super classes}{
-\code{\link[R6sagemaker.common:Processor]{R6sagemaker.common::Processor}} -> \code{\link[R6sagemaker.common:ScriptProcessor]{R6sagemaker.common::ScriptProcessor}} -> \code{\link[R6sagemaker.mlframework:.SparkProcessorBase]{R6sagemaker.mlframework::.SparkProcessorBase}} -> \code{SparkJarProcessor}
+\code{\link[sagemaker.common:Processor]{sagemaker.common::Processor}} -> \code{\link[sagemaker.common:ScriptProcessor]{sagemaker.common::ScriptProcessor}} -> \code{\link[sagemaker.mlframework:.SparkProcessorBase]{sagemaker.mlframework::.SparkProcessorBase}} -> \code{SparkJarProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -20,10 +20,10 @@ Handles Amazon SageMaker processing tasks for jobs using Spark with Java or Scal
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="Processor" data-id="format">}\href{../../R6sagemaker.common/html/Processor.html#method-format}{\code{R6sagemaker.common::Processor$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="ScriptProcessor" data-id="get_run_args">}\href{../../R6sagemaker.common/html/ScriptProcessor.html#method-get_run_args}{\code{R6sagemaker.common::ScriptProcessor$get_run_args()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlframework" data-topic=".SparkProcessorBase" data-id="start_history">}\href{../../R6sagemaker.mlframework/html/.SparkProcessorBase.html#method-start_history}{\code{R6sagemaker.mlframework::.SparkProcessorBase$start_history()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlframework" data-topic=".SparkProcessorBase" data-id="terminate_history_server">}\href{../../R6sagemaker.mlframework/html/.SparkProcessorBase.html#method-terminate_history_server}{\code{R6sagemaker.mlframework::.SparkProcessorBase$terminate_history_server()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Processor" data-id="format">}\href{../../sagemaker.common/html/Processor.html#method-format}{\code{sagemaker.common::Processor$format()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="ScriptProcessor" data-id="get_run_args">}\href{../../sagemaker.common/html/ScriptProcessor.html#method-get_run_args}{\code{sagemaker.common::ScriptProcessor$get_run_args()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlframework" data-topic=".SparkProcessorBase" data-id="start_history">}\href{../../sagemaker.mlframework/html/.SparkProcessorBase.html#method-start_history}{\code{sagemaker.mlframework::.SparkProcessorBase$start_history()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlframework" data-topic=".SparkProcessorBase" data-id="terminate_history_server">}\href{../../sagemaker.mlframework/html/.SparkProcessorBase.html#method-terminate_history_server}{\code{sagemaker.mlframework::.SparkProcessorBase$terminate_history_server()}}\out{</span>}
 }
 \out{</details>}
 }

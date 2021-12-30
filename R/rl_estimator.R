@@ -5,7 +5,7 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 #' @import lgr
 
 SAGEMAKER_ESTIMATOR <- "sagemaker_estimator"
@@ -53,7 +53,7 @@ RLFramework = Enum(
 #' @description Handle end-to-end training and deployment of custom RLEstimator code.
 #' @export
 RLEstimator = R6Class("RLEstimator",
-  inherit = R6sagemaker.common::Framework,
+  inherit = sagemaker.common::Framework,
   public = list(
 
     #' @field COACH_LATEST_VERSION_TF

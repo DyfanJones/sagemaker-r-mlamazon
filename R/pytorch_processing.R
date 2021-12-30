@@ -4,13 +4,13 @@
 #' @include pytorch_estimator.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 
 #' @title PyTorchProcessor class
 #' @description Handles Amazon SageMaker processing tasks for jobs using PyTorch containers.
 #' @export
 PyTorchProcessor = R6Class("PyTorchProcessor",
-  inherit = R6sagemaker.common::FrameworkProcessor,
+  inherit = sagemaker.common::FrameworkProcessor,
   public = list(
 
     #' @field estimator_cls

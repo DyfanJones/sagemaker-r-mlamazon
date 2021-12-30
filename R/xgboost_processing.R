@@ -4,13 +4,13 @@
 #' @include xgboost_estimator.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 
 #' @title XGBoostProcessor class
 #' @description Handles Amazon SageMaker processing tasks for jobs using XGBoost containers.
 #' @export
 XGBoostProcessor = R6Class("XGBoostProcessor",
-  inherit = R6sagemaker.common::FrameworkProcessor,
+  inherit = sagemaker.common::FrameworkProcessor,
   public = list(
 
     #' @field estimator_cls

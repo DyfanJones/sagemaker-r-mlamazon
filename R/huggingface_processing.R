@@ -2,14 +2,14 @@
 # https://github.com/aws/sagemaker-python-sdk/blob/master/src/sagemaker/huggingface/processing.py
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.mlcore
+#' @import sagemaker.common
+#' @import sagemaker.mlcore
 
 #' @title HuggingFaceProcessor class
 #' @description Handles Amazon SageMaker processing tasks for jobs using HuggingFace containers.
 #' @export
 HuggingFaceProcessor = R6Class("HuggingFaceProcessor",
-  inherit = R6sagemaker.common::FrameworkProcessor,
+  inherit = sagemaker.common::FrameworkProcessor,
   public = list(
 
     #' @field estimator_cls

@@ -7,7 +7,7 @@
 Handles Amazon SageMaker processing tasks for jobs using scikit-learn.
 }
 \section{Super classes}{
-\code{\link[R6sagemaker.common:Processor]{R6sagemaker.common::Processor}} -> \code{\link[R6sagemaker.common:ScriptProcessor]{R6sagemaker.common::ScriptProcessor}} -> \code{\link[R6sagemaker.common:FrameworkProcessor]{R6sagemaker.common::FrameworkProcessor}} -> \code{SKLearnProcessor}
+\code{\link[sagemaker.common:Processor]{sagemaker.common::Processor}} -> \code{\link[sagemaker.common:ScriptProcessor]{sagemaker.common::ScriptProcessor}} -> \code{\link[sagemaker.common:FrameworkProcessor]{sagemaker.common::FrameworkProcessor}} -> \code{SKLearnProcessor}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -26,9 +26,9 @@ Handles Amazon SageMaker processing tasks for jobs using scikit-learn.
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="Processor" data-id="format">}\href{../../R6sagemaker.common/html/Processor.html#method-format}{\code{R6sagemaker.common::Processor$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="FrameworkProcessor" data-id="get_run_args">}\href{../../R6sagemaker.common/html/FrameworkProcessor.html#method-get_run_args}{\code{R6sagemaker.common::FrameworkProcessor$get_run_args()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.common" data-topic="FrameworkProcessor" data-id="run">}\href{../../R6sagemaker.common/html/FrameworkProcessor.html#method-run}{\code{R6sagemaker.common::FrameworkProcessor$run()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Processor" data-id="format">}\href{../../sagemaker.common/html/Processor.html#method-format}{\code{sagemaker.common::Processor$format()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="FrameworkProcessor" data-id="get_run_args">}\href{../../sagemaker.common/html/FrameworkProcessor.html#method-get_run_args}{\code{sagemaker.common::FrameworkProcessor$get_run_args()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="FrameworkProcessor" data-id="run">}\href{../../sagemaker.common/html/FrameworkProcessor.html#method-run}{\code{sagemaker.common::FrameworkProcessor$run()}}\out{</span>}
 }
 \out{</details>}
 }

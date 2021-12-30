@@ -4,8 +4,8 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.mlcore
+#' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 #' @importFrom urltools url_parse
 
@@ -18,7 +18,7 @@
 #'              list.
 #' @export
 SparkMLPredictor = R6Class("SparkMLPredictor",
-  inherit = R6sagemaker.mlcore::Predictor,
+  inherit = sagemaker.mlcore::Predictor,
   public = list(
 
     #' @description Initializes a SparkMLPredictor which should be used with SparkMLModel
@@ -56,7 +56,7 @@ SparkMLPredictor = R6Class("SparkMLPredictor",
 #'              model .
 #' @export
 SparkMLModel = R6Class("SparkMLModel",
-  inherit = R6sagemaker.common::Model,
+  inherit = sagemaker.common::Model,
   public = list(
 
     #' @description Initialize a SparkMLModel.

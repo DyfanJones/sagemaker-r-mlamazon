@@ -6,7 +6,7 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 #' @import lgr
 
 #' @title XGBoost Class
@@ -14,7 +14,7 @@
 #'              customer provided XGBoost entry point script.
 #' @export
 XGBoost = R6Class("XGBoost",
-  inherit = R6sagemaker.common::Framework,
+  inherit = sagemaker.common::Framework,
   public = list(
 
     #' @description This ``Estimator`` executes an XGBoost based SageMaker Training Job.

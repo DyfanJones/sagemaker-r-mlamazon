@@ -4,7 +4,7 @@
 #' @include xgboost_default.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 #' @import lgr
 
 #' @title XGBoostPredictor Class
@@ -13,7 +13,7 @@
 #'              for XGBoost inference.
 #' @export
 XGBoostPredictor = R6Class("XGBoostPredictor",
-  inherit = R6sagemaker.mlcore::Predictor,
+  inherit = sagemaker.mlcore::Predictor,
   public = list(
 
     #' @description Initialize an ``XGBoostPredictor``.
@@ -35,7 +35,7 @@ XGBoostPredictor = R6Class("XGBoostPredictor",
 #' @description An XGBoost SageMaker ``Model`` that can be deployed to a SageMaker ``Endpoint``.
 #' @export
 XGBoostModel = R6Class("XGBoostModel",
-  inherit = R6sagemaker.common::FrameworkModel,
+  inherit = sagemaker.common::FrameworkModel,
   public = list(
 
     #' @description Initialize an XGBoostModel.

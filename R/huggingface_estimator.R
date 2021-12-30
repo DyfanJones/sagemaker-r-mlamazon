@@ -3,13 +3,13 @@
 
 #' @import lgr
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 
 #' @title HuggingFace estimator class
 #' @description Handle training of custom HuggingFace code.
 #' @export
 HuggingFace = R6Class("HuggingFace",
-  inherit = R6sagemaker.common::Framework,
+  inherit = sagemaker.common::Framework,
   public = list(
 
     #' @description This ``Estimator`` executes a HuggingFace script in a managed execution environment.

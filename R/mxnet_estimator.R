@@ -5,14 +5,14 @@
 #' @include mxnet_model.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 #' @import lgr
 
 #' @title MXNet Class
 #' @description Handle end-to-end training and deployment of custom MXNet code.
 #' @export
 MXNet = R6Class("MXNet",
-  inherit = R6sagemaker.common::Framework,
+  inherit = sagemaker.common::Framework,
   public = list(
 
     #' @field .LOWEST_SCRIPT_MODE_VERSION

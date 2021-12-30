@@ -4,8 +4,8 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.mlcore
+#' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title A Predictor for inference against Scikit-learn Endpoints.
@@ -13,7 +13,7 @@
 #'              multidimensional tensors for Scikit-learn inference.
 #' @export
 SKLearnPredictor = R6Class("SKLearnPredictor",
-  inherit = R6sagemaker.mlcore::Predictor,
+  inherit = sagemaker.mlcore::Predictor,
   public = list(
 
     #' @description Initialize an ``SKLearnPredictor``.
@@ -37,7 +37,7 @@ SKLearnPredictor = R6Class("SKLearnPredictor",
 #'              ``Endpoint``.
 #' @export
 SKLearnModel = R6Class("SKLearnModel",
-  inherit = R6sagemaker.common::FrameworkModel,
+  inherit = sagemaker.common::FrameworkModel,
   public = list(
 
     #' @description Initialize an SKLearnModel.

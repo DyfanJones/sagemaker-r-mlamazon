@@ -9,7 +9,7 @@ A Predictor for inference against MXNet Endpoints.
              multidimensional tensors for MXNet inference.
 }
 \section{Super classes}{
-\code{\link[R6sagemaker.mlcore:PredictorBase]{R6sagemaker.mlcore::PredictorBase}} -> \code{\link[R6sagemaker.mlcore:Predictor]{R6sagemaker.mlcore::Predictor}} -> \code{MXNetPredictor}
+\code{\link[sagemaker.mlcore:PredictorBase]{sagemaker.mlcore::PredictorBase}} -> \code{\link[sagemaker.mlcore:Predictor]{sagemaker.mlcore::Predictor}} -> \code{MXNetPredictor}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -21,17 +21,17 @@ A Predictor for inference against MXNet Endpoints.
 \if{html}{
 \out{<details ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="delete_endpoint">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-delete_endpoint}{\code{R6sagemaker.mlcore::Predictor$delete_endpoint()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="delete_model">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-delete_model}{\code{R6sagemaker.mlcore::Predictor$delete_model()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="delete_predictor">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-delete_predictor}{\code{R6sagemaker.mlcore::Predictor$delete_predictor()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="disable_data_capture">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-disable_data_capture}{\code{R6sagemaker.mlcore::Predictor$disable_data_capture()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="enable_data_capture">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-enable_data_capture}{\code{R6sagemaker.mlcore::Predictor$enable_data_capture()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="endpoint_context">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-endpoint_context}{\code{R6sagemaker.mlcore::Predictor$endpoint_context()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="format">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-format}{\code{R6sagemaker.mlcore::Predictor$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="list_monitors">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-list_monitors}{\code{R6sagemaker.mlcore::Predictor$list_monitors()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="predict">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-predict}{\code{R6sagemaker.mlcore::Predictor$predict()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="update_data_capture_config">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-update_data_capture_config}{\code{R6sagemaker.mlcore::Predictor$update_data_capture_config()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="R6sagemaker.mlcore" data-topic="Predictor" data-id="update_endpoint">}\href{../../R6sagemaker.mlcore/html/Predictor.html#method-update_endpoint}{\code{R6sagemaker.mlcore::Predictor$update_endpoint()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="delete_endpoint">}\href{../../sagemaker.mlcore/html/Predictor.html#method-delete_endpoint}{\code{sagemaker.mlcore::Predictor$delete_endpoint()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="delete_model">}\href{../../sagemaker.mlcore/html/Predictor.html#method-delete_model}{\code{sagemaker.mlcore::Predictor$delete_model()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="delete_predictor">}\href{../../sagemaker.mlcore/html/Predictor.html#method-delete_predictor}{\code{sagemaker.mlcore::Predictor$delete_predictor()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="disable_data_capture">}\href{../../sagemaker.mlcore/html/Predictor.html#method-disable_data_capture}{\code{sagemaker.mlcore::Predictor$disable_data_capture()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="enable_data_capture">}\href{../../sagemaker.mlcore/html/Predictor.html#method-enable_data_capture}{\code{sagemaker.mlcore::Predictor$enable_data_capture()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="endpoint_context">}\href{../../sagemaker.mlcore/html/Predictor.html#method-endpoint_context}{\code{sagemaker.mlcore::Predictor$endpoint_context()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="format">}\href{../../sagemaker.mlcore/html/Predictor.html#method-format}{\code{sagemaker.mlcore::Predictor$format()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="list_monitors">}\href{../../sagemaker.mlcore/html/Predictor.html#method-list_monitors}{\code{sagemaker.mlcore::Predictor$list_monitors()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="predict">}\href{../../sagemaker.mlcore/html/Predictor.html#method-predict}{\code{sagemaker.mlcore::Predictor$predict()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="update_data_capture_config">}\href{../../sagemaker.mlcore/html/Predictor.html#method-update_data_capture_config}{\code{sagemaker.mlcore::Predictor$update_data_capture_config()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Predictor" data-id="update_endpoint">}\href{../../sagemaker.mlcore/html/Predictor.html#method-update_endpoint}{\code{sagemaker.mlcore::Predictor$update_endpoint()}}\out{</span>}
 }
 \out{</details>}
 }

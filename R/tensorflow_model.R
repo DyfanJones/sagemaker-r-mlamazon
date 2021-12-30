@@ -4,8 +4,8 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
-#' @import R6sagemaker.mlcore
+#' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title TensorFlowPredictor Class
@@ -13,7 +13,7 @@
 #'              Serving endpoints.
 #' @export
 TensorFlowPredictor = R6Class("TensorFlowPredictor",
-  inherit = R6sagemaker.mlcore::Predictor,
+  inherit = sagemaker.mlcore::Predictor,
   public = list(
 
     #' @description Initialize a ``TensorFlowPredictor``.
@@ -114,7 +114,7 @@ TensorFlowPredictor = R6Class("TensorFlowPredictor",
 #' @description A ``FrameworkModel`` implementation for inference with TensorFlow Serving.
 #' @export
 TensorFlowModel = R6Class("TensorFlowModel",
-  inherit = R6sagemaker.common::FrameworkModel,
+  inherit = sagemaker.common::FrameworkModel,
   public = list(
 
     #' @field LOG_LEVEL_PARAM_NAME

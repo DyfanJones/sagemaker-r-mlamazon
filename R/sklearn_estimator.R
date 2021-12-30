@@ -5,14 +5,14 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 #' @import lgr
 
 #' @title Scikit-learn Class
 #' @description Handle end-to-end training and deployment of custom Scikit-learn code.
 #' @export
 SKLearn = R6Class("SKLearn",
-  inherit = R6sagemaker.common::Framework,
+  inherit = sagemaker.common::Framework,
   public = list(
 
     #' @description This ``Estimator`` executes an Scikit-learn script in a managed

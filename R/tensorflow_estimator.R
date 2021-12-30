@@ -6,14 +6,14 @@
 #' @include tensorflow_model.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 #' @import lgr
 
 #' @title TensorFlow Class
 #' @description Handle end-to-end training and deployment of user-provided TensorFlow code.
 #' @export
 TensorFlow = R6Class("TensorFlow",
-  inherit = R6sagemaker.common::Framework,
+  inherit = sagemaker.common::Framework,
   public = list(
 
     #' @description Initialize a ``TensorFlow`` estimator.

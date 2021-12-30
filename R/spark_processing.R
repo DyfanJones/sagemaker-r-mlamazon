@@ -4,7 +4,7 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import R6sagemaker.common
+#' @import sagemaker.common
 #' @import lgr
 #' @importFrom jsonlite toJSON fromJSON
 #' @importFrom urltools url_parse
@@ -15,7 +15,7 @@
 #' @description Base class for either PySpark or SparkJars.
 #' @export
 .SparkProcessorBase = R6Class(".SparkProcessorBase",
-   inherit = R6sagemaker.common::ScriptProcessor,
+   inherit = sagemaker.common::ScriptProcessor,
    public = list(
 
      #' @description Initialize a ``_SparkProcessorBase`` instance.
