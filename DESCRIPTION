@@ -15,15 +15,13 @@ Imports:
     R6,
     sagemaker.common,
     sagemaker.mlcore,
-    sagemaker.workflow,
     urltools
 Suggests:
     crayon,
     testthat
 Remotes:
     DyfanJones/sagemaker-r-common,
-    DyfanJones/sagemaker-r-mlcore,
-    DyfanJones/sagemaker-r-workflow
+    DyfanJones/sagemaker-r-mlcore
 License: Apache License (>= 2.0)
 Encoding: UTF-8
 RoxygenNote: 7.1.2

@@ -6,7 +6,7 @@
 
 #' @import R6
 #' @import sagemaker.common
-#' @import sagemaker.workflow
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title AutoML Class
@@ -280,7 +280,7 @@ AutoML = R6Class("AutoML",
         )
       })
 
-      pipeline = sagemaker.workflow::PipelineModel$new(
+      pipeline = sagemaker.mlcore::PipelineModel$new(
         models=models,
         role=self$role,
         predictor_cls=predictor_cls,
