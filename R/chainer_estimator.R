@@ -6,14 +6,16 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title Chainer Class
 #' @description Handle end-to-end training and deployment of custom Chainer code.
 #' @export
 Chainer = R6Class("Chainer",
-  inherit = sagemaker.common::Framework,
+  inherit = sagemaker.mlcore::Framework,
   public = list(
 
     # Hyperparameters
@@ -136,18 +138,15 @@ Chainer = R6Class("Chainer",
       hyperparameters = super$hyperparameters()
 
       additional_hyperparameters = list(
-        self$use_mpi,
-        self$num_processes,
-        self$process_slots_per_host,
-        self$additional_mpi_options
-        )
+        self$use_mpi, self$num_processes, self$process_slots_per_host, self$additional_mpi_options
+      )
       names(additional_hyperparameters) = c(
-        self$.use_mpi, self$.num_processes, self$.process_slots_per_host, self$.additional_mpi_options)
-
+        self$.use_mpi, self$.num_processes, self$.process_slots_per_host, self$.additional_mpi_options
+      )
       # remove unset keys.
       additional_hyperparameters = Filter(Negate(is.null), additional_hyperparameters)
-
-      return(c(hyperparameters, additional_hyperparameters))
+      hyperparameters = modifyList(hyperparameters, private$.json_encode_hyperparameters(additional_hyperparameters))
+      return(hyperparameters)
     },
 
     #' @description Create a SageMaker ``ChainerModel`` object that can be deployed to an

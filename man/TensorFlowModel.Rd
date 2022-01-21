@@ -7,12 +7,14 @@
 A ``FrameworkModel`` implementation for inference with TensorFlow Serving.
 }
 \section{Super classes}{
-\code{\link[sagemaker.common:ModelBase]{sagemaker.common::ModelBase}} -> \code{\link[sagemaker.common:Model]{sagemaker.common::Model}} -> \code{\link[sagemaker.common:FrameworkModel]{sagemaker.common::FrameworkModel}} -> \code{TensorFlowModel}
+\code{\link[sagemaker.mlcore:ModelBase]{sagemaker.mlcore::ModelBase}} -> \code{\link[sagemaker.mlcore:Model]{sagemaker.mlcore::Model}} -> \code{\link[sagemaker.mlcore:FrameworkModel]{sagemaker.mlcore::FrameworkModel}} -> \code{TensorFlowModel}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{LOG_LEVEL_PARAM_NAME}}{logging level}
+
+\item{\code{LOG_LEVEL_MAP}}{logging level map}
 
 \item{\code{LATEST_EIA_VERSION}}{latest eia version supported}
 }
@@ -23,23 +25,24 @@ A ``FrameworkModel`` implementation for inference with TensorFlow Serving.
 \itemize{
 \item \href{#method-new}{\code{TensorFlowModel$new()}}
 \item \href{#method-register}{\code{TensorFlowModel$register()}}
+\item \href{#method-deploy}{\code{TensorFlowModel$deploy()}}
+\item \href{#method-prepare_container_def}{\code{TensorFlowModel$prepare_container_def()}}
+\item \href{#method-serving_image_uri}{\code{TensorFlowModel$serving_image_uri()}}
 \item \href{#method-clone}{\code{TensorFlowModel$clone()}}
 }
 }
 \if{html}{
 \out{<details ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="ModelBase" data-id="format">}\href{../../sagemaker.common/html/ModelBase.html#method-format}{\code{sagemaker.common::ModelBase$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="ModelBase" data-id="help">}\href{../../sagemaker.common/html/ModelBase.html#method-help}{\code{sagemaker.common::ModelBase$help()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id=".create_sagemaker_model">}\href{../../sagemaker.common/html/Model.html#method-.create_sagemaker_model}{\code{sagemaker.common::Model$.create_sagemaker_model()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="check_neo_region">}\href{../../sagemaker.common/html/Model.html#method-check_neo_region}{\code{sagemaker.common::Model$check_neo_region()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="compile">}\href{../../sagemaker.common/html/Model.html#method-compile}{\code{sagemaker.common::Model$compile()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="delete_model">}\href{../../sagemaker.common/html/Model.html#method-delete_model}{\code{sagemaker.common::Model$delete_model()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="deploy">}\href{../../sagemaker.common/html/Model.html#method-deploy}{\code{sagemaker.common::Model$deploy()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="enable_network_isolation">}\href{../../sagemaker.common/html/Model.html#method-enable_network_isolation}{\code{sagemaker.common::Model$enable_network_isolation()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="package_for_edge">}\href{../../sagemaker.common/html/Model.html#method-package_for_edge}{\code{sagemaker.common::Model$package_for_edge()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="transformer">}\href{../../sagemaker.common/html/Model.html#method-transformer}{\code{sagemaker.common::Model$transformer()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="FrameworkModel" data-id="prepare_container_def">}\href{../../sagemaker.common/html/FrameworkModel.html#method-prepare_container_def}{\code{sagemaker.common::FrameworkModel$prepare_container_def()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="ModelBase" data-id="format">}\href{../../sagemaker.mlcore/html/ModelBase.html#method-format}{\code{sagemaker.mlcore::ModelBase$format()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="ModelBase" data-id="help">}\href{../../sagemaker.mlcore/html/ModelBase.html#method-help}{\code{sagemaker.mlcore::ModelBase$help()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id=".create_sagemaker_model">}\href{../../sagemaker.mlcore/html/Model.html#method-.create_sagemaker_model}{\code{sagemaker.mlcore::Model$.create_sagemaker_model()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="check_neo_region">}\href{../../sagemaker.mlcore/html/Model.html#method-check_neo_region}{\code{sagemaker.mlcore::Model$check_neo_region()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="compile">}\href{../../sagemaker.mlcore/html/Model.html#method-compile}{\code{sagemaker.mlcore::Model$compile()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="delete_model">}\href{../../sagemaker.mlcore/html/Model.html#method-delete_model}{\code{sagemaker.mlcore::Model$delete_model()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="enable_network_isolation">}\href{../../sagemaker.mlcore/html/Model.html#method-enable_network_isolation}{\code{sagemaker.mlcore::Model$enable_network_isolation()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="package_for_edge">}\href{../../sagemaker.mlcore/html/Model.html#method-package_for_edge}{\code{sagemaker.mlcore::Model$package_for_edge()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="transformer">}\href{../../sagemaker.mlcore/html/Model.html#method-transformer}{\code{sagemaker.mlcore::Model$transformer()}}\out{</span>}
 }
 \out{</details>}
 }
@@ -168,6 +171,142 @@ or "PendingManualApproval" (default: "PendingManualApproval").}
 }
 \subsection{Returns}{
 str: A string of SageMaker Model Package ARN.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-deploy"></a>}}
+\if{latex}{\out{\hypertarget{method-deploy}{}}}
+\subsection{Method \code{deploy()}}{
+Deploy a Tensorflow ``Model`` to a SageMaker ``Endpoint``.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{TensorFlowModel$deploy(
+  initial_instance_count = NULL,
+  instance_type = NULL,
+  serializer = NULL,
+  deserializer = NULL,
+  accelerator_type = NULL,
+  endpoint_name = NULL,
+  tags = NULL,
+  kms_key = NULL,
+  wait = TRUE,
+  data_capture_config = NULL,
+  update_endpoint = NULL,
+  serverless_inference_config = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{initial_instance_count}}{(int): The initial number of instances to run
+in the ``Endpoint`` created from this ``Model``.}
+
+\item{\code{instance_type}}{(str): The EC2 instance type to deploy this Model to.
+For example, 'ml.p2.xlarge', or 'local' for local mode.}
+
+\item{\code{serializer}}{(:class:`~sagemaker.serializers.BaseSerializer`): A
+serializer object, used to encode data for an inference endpoint
+(default: None). If ``serializer`` is not None, then
+``serializer`` will override the default serializer. The
+default serializer is set by the ``predictor_cls``.}
+
+\item{\code{deserializer}}{(:class:`~sagemaker.deserializers.BaseDeserializer`): A
+deserializer object, used to decode data from an inference
+endpoint (default: None). If ``deserializer`` is not None, then
+``deserializer`` will override the default deserializer. The
+default deserializer is set by the ``predictor_cls``.}
+
+\item{\code{accelerator_type}}{(str): Type of Elastic Inference accelerator to
+deploy this model for model loading and inference, for example,
+'ml.eia1.medium'. If not specified, no Elastic Inference
+accelerator will be attached to the endpoint. For more
+information:
+https://docs.aws.amazon.com/sagemaker/latest/dg/ei.html}
+
+\item{\code{endpoint_name}}{(str): The name of the endpoint to create (Default:
+NULL). If not specified, a unique endpoint name will be created.}
+
+\item{\code{tags}}{(List[dict[str, str]]): The list of tags to attach to this
+specific endpoint.}
+
+\item{\code{kms_key}}{(str): The ARN of the KMS key that is used to encrypt the
+data on the storage volume attached to the instance hosting the
+endpoint.}
+
+\item{\code{wait}}{(bool): Whether the call should wait until the deployment of
+this model completes (default: True).}
+
+\item{\code{data_capture_config}}{(sagemaker.model_monitor.DataCaptureConfig): Specifies
+configuration related to Endpoint data capture for use with
+Amazon SageMaker Model Monitoring. Default: None.}
+
+\item{\code{update_endpoint}}{: Placeholder}
+
+\item{\code{serverless_inference_config}}{(ServerlessInferenceConfig):
+Specifies configuration related to serverless endpoint. Use this configuration
+when trying to create serverless endpoint and make serverless inference. If
+empty object passed through, we will use pre-defined values in
+``ServerlessInferenceConfig`` class to deploy serverless endpoint (default: None)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+callable[string, sagemaker.session.Session] or None: Invocation of
+             ``self.predictor_cls`` on the created endpoint name, if ``self.predictor_cls``
+             is not None. Otherwise, return None.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-prepare_container_def"></a>}}
+\if{latex}{\out{\hypertarget{method-prepare_container_def}{}}}
+\subsection{Method \code{prepare_container_def()}}{
+Prepare the container definition.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{TensorFlowModel$prepare_container_def(
+  instance_type = NULL,
+  accelerator_type = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{instance_type}}{: Instance type of the container.}
+
+\item{\code{accelerator_type}}{: Accelerator type, if applicable.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A container definition for deploying a ``Model`` to an ``Endpoint``.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-serving_image_uri"></a>}}
+\if{latex}{\out{\hypertarget{method-serving_image_uri}{}}}
+\subsection{Method \code{serving_image_uri()}}{
+Create a URI for the serving image.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{TensorFlowModel$serving_image_uri()}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{region_name}}{(str): AWS region where the image is uploaded.}
+
+\item{\code{instance_type}}{(str): SageMaker instance type. Used to determine device type
+(cpu/gpu/family-specific optimized).}
+
+\item{\code{accelerator_type}}{(str): The Elastic Inference accelerator type to
+deploy to the instance for loading and making inferences to the}
+
+\item{\code{model}}{(default: None). For example, 'ml.eia1.medium'.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+str: The appropriate image URI based on the given parameters.
 }
 }
 \if{html}{\out{<hr>}}

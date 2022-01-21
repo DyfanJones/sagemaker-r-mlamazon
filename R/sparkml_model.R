@@ -4,7 +4,7 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import sagemaker.common
+#' @import sagemaker.core
 #' @import sagemaker.mlcore
 #' @import lgr
 #' @importFrom urltools url_parse
@@ -38,12 +38,13 @@ SparkMLPredictor = R6Class("SparkMLPredictor",
                           sagemaker_session=NULL,
                           serializer=CSVSerializer$new(),
                           ...){
-      sagemaker_session = sagemaker_session %||% Session$new()
+      sagemaker_session = sagemaker_session %||% sagemaker.core::Session$new()
       super$initialize(
         endpoint_name,
         sagemaker_session=sagemaker_session,
         serializer=serializer,
-        ...)
+        ...
+      )
     }
   ),
   lock_objects = F
@@ -56,7 +57,7 @@ SparkMLPredictor = R6Class("SparkMLPredictor",
 #'              model .
 #' @export
 SparkMLModel = R6Class("SparkMLModel",
-  inherit = sagemaker.common::Model,
+  inherit = sagemaker.mlcore::Model,
   public = list(
 
     #' @description Initialize a SparkMLModel.
@@ -80,21 +81,22 @@ SparkMLModel = R6Class("SparkMLModel",
     #'              :class:`~sagemaker.model.Model` constructor.
     initialize = function(model_data,
                          role=NULL,
-                         spark_version=2.4,
+                         spark_version="2.4",
                          sagemaker_session=NULL,
                          ...){
       # For local mode, sagemaker_session should be passed as None but we need a session to get
       # paws_region_name
       region_name = (sagemaker_session %||% Session$new())$paws_region_name
-      image_uri = ImageUris$new()$retrieve("sparkml-serving", region_name, version=spark_version)
+      image_uri = sagemaker.core::ImageUris$new()$retrieve("sparkml-serving", region_name, version=spark_version)
       super$initialize(
         image_uri,
         model_data,
         role,
         predictor_cls=SparkMLPredictor,
         sagemaker_session=sagemaker_session,
-        ...)
-     }
+        ...
+      )
+    }
   ),
   lock_objects = F
 )

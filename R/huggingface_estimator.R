@@ -3,13 +3,15 @@
 
 #' @import lgr
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
+#' @import sagemaker.mlcore
 
 #' @title HuggingFace estimator class
 #' @description Handle training of custom HuggingFace code.
 #' @export
 HuggingFace = R6Class("HuggingFace",
-  inherit = sagemaker.common::Framework,
+  inherit = sagemaker.mlcore::Framework,
   public = list(
 
     #' @description This ``Estimator`` executes a HuggingFace script in a managed execution environment.
@@ -89,6 +91,8 @@ HuggingFace = R6Class("HuggingFace",
     #'              }
     #'              }
     #'              }
+    #' @param compiler_config (:class:`sagemaker.mlcore::TrainingCompilerConfig`):
+    #'              Configures SageMaker Training Compiler to accelerate training.
     #' @param ... : Additional kwargs passed to the :class:`~sagemaker.estimator.Framework`
     #'              constructor.
     initialize = function(py_version,
@@ -100,6 +104,7 @@ HuggingFace = R6Class("HuggingFace",
                           hyperparameters=NULL,
                           image_uri=NULL,
                           distribution=NULL,
+                          compiler_config=NULL,
                           ...){
       kwargs = list(...)
       self$framework_version = transformers_version
@@ -108,15 +113,16 @@ HuggingFace = R6Class("HuggingFace",
       self$pytorch_version = pytorch_version
 
       private$.validate_args(image_uri=image_uri)
+      instance_type = renamed_kwargs(
+        "train_instance_type", "instance_type", kwargs[["instance_type"]], kwargs
+      )
+
+      base_framework_name = if (!is.null(tensorflow_version)) "tensorflow" else "pytorch"
+      base_framework_version = (
+        if (!is.null(tensorflow_version)) tensorflow_version else pytorch_version
+      )
 
       if (!is.null(distribution)){
-        instance_type = renamed_kwargs(
-          "train_instance_type", "instance_type", kwargs[["instance_type"]], kwargs
-        )
-
-        base_framework_name = if (!is.null(tensorflow_version)) "tensorflow" else "pytorch"
-        base_framework_version = (if (!is.null(tensorflow_version))
-          tensorflow_version else pytorch_version)
 
         validate_smdistributed(
           instance_type=instance_type,
@@ -130,6 +136,8 @@ HuggingFace = R6Class("HuggingFace",
           training_instance_type=instance_type, distribution=distribution
         )
       }
+      kwargs[["py_version"]] = self$py_version
+
       if (!("enable_sagemaker_metrics" %in% names(kwargs)))
         kwargs[["enable_sagemaker_metrics"]] = TRUE
 
@@ -139,10 +147,27 @@ HuggingFace = R6Class("HuggingFace",
         hyperparameters=list(hyperparameters),
         image_uri=image_uri,
         kwargs)
-
       do.call(super$initialize, kwargs)
 
+      if (!is.null(compiler_config)){
+        if (!inherits(compiler_config, "TrainingCompilerConfig")){
+          error_string = paste(
+            "Expected instance of type `sagemaker.mlcore::TrainingCompilerConfig`",
+            "for argument compiler_config.",
+            sprintf("Instead got `%s`", class(compiler_config)[1])
+          )
+          ValueError$new(error_string)
+        }
+        if (compiler_config$enabled){
+          compiler_config$validate(
+            image_uri=image_uri,
+            instance_type=instance_type,
+            distribution=distribution
+          )
+        }
+      }
       self$distribution = distribution %||% list()
+      self$compiler_config = compiler_config
 
       attr(self, "_framework_name") = "huggingface"
     },
@@ -151,14 +176,18 @@ HuggingFace = R6Class("HuggingFace",
     hyperparameters = function(){
       hyperparameters = super$hyperparameters()
       additional_hyperparameters = private$.distribution_configuration(
-        distribution=self$distribution)
-      # Currently don't use .json_encode_hyperparameters
-      # hyperparameters = modifyList(
-      #   hyperparameters,
-      #   private$.json_encode_hyperparameters(additional_hyperparameters))
+        distribution=self$distribution
+      )
       hyperparameters = modifyList(
-        hyperparameters,
-        additional_hyperparameters)
+        hyperparameters, private$.json_encode_hyperparameters(additional_hyperparameters)
+      )
+
+      if (!is.null(self$compiler_config)){
+        training_compiler_hyperparameters = self$compiler_config$.to_hyperparameter_list()
+        hyperparameters = modifyList(
+          hyperparameters, private$.json_encode_hyperparameters(training_compiler_hyperparameters)
+        )
+      }
       return(hyperparameters)
     },
 
@@ -210,7 +239,29 @@ HuggingFace = R6Class("HuggingFace",
                             source_dir=NULL,
                             dependencies=NULL,
                             ...){
-      NotImplementedError$new("Creating model with HuggingFace training job is not supported.")
+      kwargs = list(...)
+      if (!("image_uri" %in% names(kwargs))){
+          kwargs[["image_uri"]] = self$image_uri
+      }
+      kwargs[["name"]] = private$.get_or_create_name(kwargs[["name"]])
+      kwargs = c(
+        role = role %||% self$role,
+        model_data=self$model_data,
+        entry_point=entry_point,
+        transformers_version=self$framework_version,
+        tensorflow_version=self$tensorflow_version,
+        pytorch_version=self$pytorch_version,
+        py_version=self$py_version,
+        source_dir=(source_dir %||% private$.model_source_dir()),
+        container_log_level=self$container_log_level,
+        code_location=self$code_location,
+        model_server_workers=model_server_workers,
+        sagemaker_session=self$sagemaker_session,
+        vpc_config=self$get_vpc_config(vpc_config_override),
+        dependencies=(dependencies %||% self$dependencies),
+        kwargs
+      )
+      return(do.call(HuggingFaceModel$new, kwargs))
     }
   ),
   private = list(

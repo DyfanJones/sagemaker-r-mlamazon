@@ -5,9 +5,11 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 #' @import sagemaker.mlcore
 #' @import lgr
+
 
 #' @title MXNetPredictor Class
 #' @description A Predictor for inference against MXNet Endpoints.
@@ -25,10 +27,19 @@ MXNetPredictor = R6Class("MXNetPredictor",
     #'              manages interactions with Amazon SageMaker APIs and any other
     #'              AWS services needed. If not specified, the estimator creates one
     #'              using the default AWS configuration chain.
+    #' @param serializer (callable): Optional. Default serializes input data to
+    #'              json. Handles dicts, lists, and numpy arrays.
+    #' @param deserializer (callable): Optional. Default parses the response using
+    #'              ``json.load(...)``.
     initialize = function(endpoint_name,
-                          sagemaker_session=NULL){
+                          sagemaker_session=NULL,
+                          serializer = JSONSerializer$new(),
+                          deserializer=JSONDeserializer$new()){
       super$initialize(
-        endpoint_name, sagemaker_session, JSONSerializer$new(), JSONDeserializer$new()
+        endpoint_name,
+        sagemaker_session,
+        serializer=serializer,
+        deserializer=deserializer
       )
     }
   ),
@@ -39,7 +50,7 @@ MXNetPredictor = R6Class("MXNetPredictor",
 #' @description An MXNet SageMaker ``Model`` that can be deployed to a SageMaker ``Endpoint``.
 #' @export
 MXNetModel = R6Class("MXNetModel",
-  inherit = sagemaker.common::FrameworkModel,
+  inherit = sagemaker.mlcore::FrameworkModel,
   public = list(
 
     #' @field .LOWEST_MMS_VERSION
@@ -124,9 +135,9 @@ MXNetModel = R6Class("MXNetModel",
       deploy_image = self$image_uri
       if (is.null(deploy_image)){
         if (is.null(instance_type))
-          stop(
-            "Must supply either an instance type (for choosing CPU vs GPU) or an image URI.",
-            call. = F)
+          ValueError$new(
+            "Must supply either an instance type (for choosing CPU vs GPU) or an image URI."
+          )
 
         region_name = self$sagemaker_session$paws_region_name
         deploy_image = self$serving_image_uri(
@@ -158,7 +169,7 @@ MXNetModel = R6Class("MXNetModel",
     serving_image_uri = function(region_name,
                                  instance_type,
                                  accelerator_type=NULL){
-      return(ImageUris$new()$retrieve(
+      return(sagemaker.core::ImageUris$new()$retrieve(
         attr(self, "_framework_name"),
         region_name,
         version=self$framework_version,

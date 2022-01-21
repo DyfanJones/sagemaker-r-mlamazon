@@ -6,6 +6,7 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 #' @import sagemaker.mlcore
 #' @import lgr
@@ -25,10 +26,20 @@ ChainerPredictor = R6Class("ChainerPredictor",
     #'              manages interactions with Amazon SageMaker APIs and any other
     #'              AWS services needed. If not specified, the estimator creates one
     #'              using the default AWS configuration chain.
+    #' @param serializer (sagemaker.serializers.BaseSerializer): Optional. Default
+    #'              serializes input data to .npy format. Handles lists and numpy
+    #'              arrays.
+    #' @param deserializer (sagemaker.deserializers.BaseDeserializer): Optional.
+    #'              Default parses the response from .npy format to numpy array.
     initialize = function(endpoint_name,
-                          sagemaker_session=NULL){
+                          sagemaker_session=NULL,
+                          serializer=NumpySerializer$new(),
+                          deserializer=NumpyDeserializer$new()){
       super$initialize(
-        endpoint_name, sagemaker_session, NumpySerializer$new(), NumpyDeserializer$new()
+        endpoint_name,
+        sagemaker_session,
+        serializer=serializer,
+        deserializer=deserializer
       )
     }
   ),
@@ -40,7 +51,7 @@ ChainerPredictor = R6Class("ChainerPredictor",
 #'              ``Endpoint``.
 #' @export
 ChainerModel = R6Class("ChainerModel",
-  inherit = sagemaker.common::FrameworkModel,
+  inherit = sagemaker.mlcore::FrameworkModel,
   public = list(
 
     #' @description Initialize an ChainerModel.

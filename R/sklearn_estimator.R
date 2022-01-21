@@ -5,14 +5,15 @@
 #' @include r_utils.R
 
 #' @import R6
-#' @import sagemaker.common
+#' @import sagemaker.core
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title Scikit-learn Class
 #' @description Handle end-to-end training and deployment of custom Scikit-learn code.
 #' @export
 SKLearn = R6Class("SKLearn",
-  inherit = sagemaker.common::Framework,
+  inherit = sagemaker.mlcore::Framework,
   public = list(
 
     #' @description This ``Estimator`` executes an Scikit-learn script in a managed
@@ -109,7 +110,7 @@ SKLearn = R6Class("SKLearn",
       attr(self, "_framework_name") = "sklearn"
 
       if (is.null(image_uri))
-        self$image_uri = ImageUris$new()$retrieve(
+        self$image_uri = sagemaker.core::ImageUris$new()$retrieve(
           attr(self, "_framework_name"),
           self$sagemaker_session$paws_region_name,
           version=self$framework_version,
@@ -161,7 +162,7 @@ SKLearn = R6Class("SKLearn",
       if (!("enable_network_isolation" %in% names(kwargs)))
         kwargs$enable_network_isolation = self$enable_network_isolation()
 
-      kwargs = c(list(
+      kwargs = c(
         model_data = self$model_data,
         role = role,
         entry_point = entry_point %||% private$.model_entry_point(),
@@ -173,7 +174,7 @@ SKLearn = R6Class("SKLearn",
         model_server_workers=model_server_workers,
         sagemaker_session=self$sagemaker_session,
         vpc_config=self$get_vpc_config(vpc_config_override),
-        dependencies=(dependencies %||% self$dependencies)),
+        dependencies=(dependencies %||% self$dependencies),
         kwargs)
       return (do.call(SKLearnModel$new, kwargs))
     }
@@ -230,10 +231,11 @@ SKLearn = R6Class("SKLearn",
                              "ml.p3.16xlarge")
 
       if (training_instance_type %in% gpu_instance_types)
-        stop("GPU training in not supported for Scikit-Learn. ",
-             "Please pick a different instance type from here: ",
-             "https://aws.amazon.com/ec2/instance-types/",
-             call. = F)
+        ValueError$new(
+          "GPU training in not supported for Scikit-Learn. ",
+          "Please pick a different instance type from here: ",
+          "https://aws.amazon.com/ec2/instance-types/"
+        )
     }
   ),
   lock_objects = F

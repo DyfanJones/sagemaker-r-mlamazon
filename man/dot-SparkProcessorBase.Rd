@@ -13,6 +13,7 @@ Base class for either PySpark or SparkJars.
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{.SparkProcessorBase$new()}}
+\item \href{#method-get_run_args}{\code{.SparkProcessorBase$get_run_args()}}
 \item \href{#method-run}{\code{.SparkProcessorBase$run()}}
 \item \href{#method-start_history}{\code{.SparkProcessorBase$start_history()}}
 \item \href{#method-terminate_history_server}{\code{.SparkProcessorBase$terminate_history_server()}}
@@ -23,7 +24,6 @@ Base class for either PySpark or SparkJars.
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Processor" data-id="format">}\href{../../sagemaker.common/html/Processor.html#method-format}{\code{sagemaker.common::Processor$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="ScriptProcessor" data-id="get_run_args">}\href{../../sagemaker.common/html/ScriptProcessor.html#method-get_run_args}{\code{sagemaker.common::ScriptProcessor$get_run_args()}}\out{</span>}
 }
 \out{</details>}
 }
@@ -111,6 +111,46 @@ object that configures network isolation, encryption of
 inter-container traffic, security group IDs, and subnets.}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_run_args"></a>}}
+\if{latex}{\out{\hypertarget{method-get_run_args}{}}}
+\subsection{Method \code{get_run_args()}}{
+For processors (:class:`~sagemaker.spark.processing.PySparkProcessor`,
+             :class:`~sagemaker.spark.processing.SparkJar`) that have special
+             run() arguments, this object contains the normalized arguments for passing to
+             :class:`~sagemaker.workflow.steps.ProcessingStep`.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{.SparkProcessorBase$get_run_args(
+  code,
+  inputs = NULL,
+  outputs = NULL,
+  arguments = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{code}}{(str): This can be an S3 URI or a local path to a file with the framework
+script to run.}
+
+\item{\code{inputs}}{(list[:class:`~sagemaker.processing.ProcessingInput`]): Input files for
+the processing job. These must be provided as
+:class:`~sagemaker.processing.ProcessingInput` objects (default: None).}
+
+\item{\code{outputs}}{(list[:class:`~sagemaker.processing.ProcessingOutput`]): Outputs for
+the processing job. These can be specified as either path strings or
+:class:`~sagemaker.processing.ProcessingOutput` objects (default: None).}
+
+\item{\code{arguments}}{(list[str]): A list of string arguments to be passed to a
+processing job (default: None).}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Returns a RunArgs object.
 }
 }
 \if{html}{\out{<hr>}}

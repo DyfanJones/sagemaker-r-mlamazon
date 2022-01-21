@@ -4,6 +4,7 @@
 #' @include sklearn_estimator.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 
 #' @title SKLearnProcessor Class
@@ -79,25 +80,32 @@ SKLearnProcessor = R6Class("SKLearnProcessor",
                           env=NULL,
                           tags=NULL,
                           network_config=NULL){
+      if (is.null(command))
+        command = "python3"
+
+      session = sagemaker_session %||% sagemaker.core::Session$new()
+      region = session$paws_region_name
+
+      image_uri = sagemaker.core::ImageUris$new()$retrieve(
+        "sklearn", region, version=framework_version, instance_type=instance_type
+      )
       super$initialize(
         self$estimator_cls,
         framework_version,
-        role,
-        instance_count,
-        instance_type,
-        py_version,
-        image_uri,
-        command,
-        volume_size_in_gb,
-        volume_kms_key,
-        output_kms_key,
-        code_location,
-        max_runtime_in_seconds,
-        base_job_name,
-        sagemaker_session,
-        env,
-        tags,
-        network_config
+        role=role,
+        image_uri=image_uri,
+        instance_count=instance_count,
+        instance_type=instance_type,
+        command=command,
+        volume_size_in_gb=volume_size_in_gb,
+        volume_kms_key=volume_kms_key,
+        output_kms_key=output_kms_key,
+        max_runtime_in_seconds=max_runtime_in_seconds,
+        base_job_name=base_job_name,
+        sagemaker_session=session,
+        env=env,
+        tags=tags,
+        network_config=network_config
       )
     }
   ),

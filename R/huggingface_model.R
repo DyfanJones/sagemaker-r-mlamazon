@@ -4,6 +4,7 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 #' @import sagemaker.mlcore
 
@@ -28,7 +29,7 @@ HuggingFacePredictor = R6Class("HuggingFacePredictor",
     #' @param deserializer (sagemaker.deserializers.BaseDeserializer): Optional.
     #'              Default parses the response from .npy format to numpy array.
     initialize = function(endpoint_name,
-                          sagemaker_session=None,
+                          sagemaker_session=NULL,
                           serializer=JSONSerializer$new(),
                           deserializer=JSONDeserializer$new()){
       super$initialize(
@@ -61,7 +62,7 @@ HuggingFacePredictor = R6Class("HuggingFacePredictor",
 #' @description A Hugging Face SageMaker ``Model`` that can be deployed to a SageMaker ``Endpoint``.
 #' @export
 HuggingFaceModel = R6Class("HuggingFaceModel",
-  inherit = sagemaker.common::FrameworkModel,
+  inherit = sagemaker.mlcore::FrameworkModel,
   public = list(
 
     #' @description Initialize a HuggingFaceModel.
@@ -123,7 +124,7 @@ HuggingFaceModel = R6Class("HuggingFaceModel",
         image_uri=image_uri
       )
       if (py_version == "py2")
-        ValueError("py2 is not supported with HuggingFace images")
+        ValueError$new("py2 is not supported with HuggingFace images")
       self$framework_version = transformers_version
       self$pytorch_version = pytorch_version
       self$tensorflow_version = tensorflow_version
@@ -158,6 +159,7 @@ HuggingFaceModel = R6Class("HuggingFaceModel",
     #' @param approval_status (str): Model Approval Status, values can be "Approved", "Rejected",
     #'              or "PendingManualApproval". Defaults to ``PendingManualApproval``.
     #' @param description (str): Model Package description. Defaults to ``None``.
+    #' @param drift_check_baselines (DriftCheckBaselines): DriftCheckBaselines object (default: None)
     #' @return A `sagemaker.model.ModelPackage` instance.
     register = function(content_types,
                         response_types,
@@ -170,7 +172,8 @@ HuggingFaceModel = R6Class("HuggingFaceModel",
                         metadata_properties=NULL,
                         marketplace_cert=FALSE,
                         approval_status=NULL,
-                        description=NULL){
+                        description=NULL,
+                        drift_check_baselines=NULL){
       instance_type = inference_instances[[1]]
       private$.init_sagemaker_session_if_does_not_exist(instance_type)
 
@@ -193,7 +196,9 @@ HuggingFaceModel = R6Class("HuggingFaceModel",
         metadata_properties,
         marketplace_cert,
         approval_status,
-        description)
+        description,
+        drift_check_baselines=drift_check_baselines
+        )
       )
     },
 
@@ -224,7 +229,7 @@ HuggingFaceModel = R6Class("HuggingFaceModel",
       deploy_env= modifyList(deploy_env, private$.framework_env_vars())
 
       if (!is.null(self$model_server_workers))
-        deploy_env[MODEL_SERVER_WORKERS_PARAM_NAME.upper()] = str(self.model_server_workers)
+        deploy_env[[toupper(model_parameters$MODEL_SERVER_WORKERS_PARAM_NAME)]] = as.character(self$model_server_workers)
       return(container_def(
         deploy_image, self$repacked_model_data %||% self.model_data, deploy_env)
       )
@@ -238,29 +243,21 @@ HuggingFaceModel = R6Class("HuggingFaceModel",
     #'              deploy to the instance for loading and making inferences to the
     #'              model.
     #' @return str: The appropriate image URI based on the given parameters.
-    serving_image_uri = function(){
-      image_uris = sagemaker.common:::ImageUris$new()
-      if (image_uris$.__enclos_env__$private$.processor(instance_type, c("cpu", "gpu")) == "gpu"){
-        container_version = "cu110-ubuntu18.04"
-      } else {
-        container_version = "ubuntu18.04"}
-      if (!is.null(self$tensorflow_version)){
-        base_framework_version = sprintf(
-          "tensorflow%s",
-          self$tensorflow_version)
+    serving_image_uri = function(region_name, instance_type, accelerator_type=NULL){
+      if(!is.null(self$tensorflow_version)) {
+        base_framework_version = sprintf("tensorflow%s", self$tensorflow_version)
       } else {
         base_framework_version = sprintf("pytorch%s", self$pytorch_version)
       }
-      return(image_uris$retrieve(
+      return(sagemaker.core::ImageUris$new()$retrieve(
         attr(self, "_framework_name"),
         region_name,
-        version=self$framework_version,
-        py_version=self$py_version,
+        version=self.framework_version,
+        py_version=self.py_version,
         instance_type=instance_type,
         accelerator_type=accelerator_type,
         image_scope="inference",
-        base_framework_version=base_framework_version,
-        container_version=container_version)
+        base_framework_version=base_framework_version)
       )
     }
   ),

@@ -4,6 +4,7 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 
 #' @title CandidateEstimator Class
@@ -24,7 +25,7 @@ CandidateEstimator = R6Class("CandidateEstimator",
       self$name = candidate$CandidateName
       self$containers = candidate$InferenceContainers
       self$steps = private$.process_steps(candidate$CandidateSteps)
-      self$sagemaker_session = sagemaker_session %||% Session$new()
+      self$sagemaker_session = sagemaker_session %||% sagemaker.core::Session$new()
     },
 
     #' @description Get the step job of a candidate so that users can construct estimators/transformers
@@ -96,13 +97,13 @@ CandidateEstimator = R6Class("CandidateEstimator",
           # prepare inputs
           input_dict = list()
           if (inherits(inputs, "character")) {
-            input_dict$train = .Job$private_methods$.format_string_uri_input(inputs)
+            input_dict$train = sagemaker.common::.Job$private_methods$.format_string_uri_input(inputs)
           } else {
             msg = "Cannot format input %s. Expecting a string."
             stop(sprintf(msg,inputs), call. = F)
           }
           channels = lapply(seq_along(input_dict), function(i)
-            .Job$private_methods$.convert_input_to_channel(names(input_dict)[i], input_dict[[i]]))
+            sagemaker.common::.Job$private_methods$.convert_input_to_channel(names(input_dict)[i], input_dict[[i]]))
 
           desc = self$sagemaker_session$sagemaker$describe_training_job(
             TrainingJobName=step_name)

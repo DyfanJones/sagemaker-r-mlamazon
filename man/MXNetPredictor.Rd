@@ -41,7 +41,12 @@ A Predictor for inference against MXNet Endpoints.
 \subsection{Method \code{new()}}{
 Initialize an ``MXNetPredictor``.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MXNetPredictor$new(endpoint_name, sagemaker_session = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{MXNetPredictor$new(
+  endpoint_name,
+  sagemaker_session = NULL,
+  serializer = JSONSerializer$new(),
+  deserializer = JSONDeserializer$new()
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -54,6 +59,12 @@ on.}
 manages interactions with Amazon SageMaker APIs and any other
 AWS services needed. If not specified, the estimator creates one
 using the default AWS configuration chain.}
+
+\item{\code{serializer}}{(callable): Optional. Default serializes input data to
+json. Handles dicts, lists, and numpy arrays.}
+
+\item{\code{deserializer}}{(callable): Optional. Default parses the response using
+``json.load(...)``.}
 }
 \if{html}{\out{</div>}}
 }

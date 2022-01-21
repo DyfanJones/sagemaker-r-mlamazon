@@ -5,7 +5,9 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 SAGEMAKER_ESTIMATOR <- "sagemaker_estimator"
@@ -35,7 +37,7 @@ TOOLKIT_FRAMEWORK_VERSION_MAP <- list(
 #'              executing your model training code.
 #' @return environment containing [COACH, RAY]
 #' @export
-RLToolkit = Enum(COACH = "coach", RAY = "ray")
+RLToolkit = sagemaker.core::Enum(COACH = "coach", RAY = "ray")
 
 #' @title RLFramework enum environment list
 #' @description Framework (MXNet, TensorFlow or PyTorch) you want to be used
@@ -43,7 +45,7 @@ RLToolkit = Enum(COACH = "coach", RAY = "ray")
 #'              reinforcement learning training.
 #' @return environment containing [TENSORFLOW, MXNET, PYTORCH]
 #' @export
-RLFramework = Enum(
+RLFramework = sagemaker.core::Enum(
   TENSORFLOW = "tensorflow",
   MXNET = "mxnet",
   PYTORCH = "pytorch"
@@ -53,7 +55,7 @@ RLFramework = Enum(
 #' @description Handle end-to-end training and deployment of custom RLEstimator code.
 #' @export
 RLEstimator = R6Class("RLEstimator",
-  inherit = sagemaker.common::Framework,
+  inherit = sagemaker.mlcore::Framework,
   public = list(
 
     #' @field COACH_LATEST_VERSION_TF
@@ -249,7 +251,7 @@ RLEstimator = R6Class("RLEstimator",
     training_image_uri = function(){
       if (!is.null(self$image_uri))
         return(self$image_uri)
-      return(ImageUris$new()$retrieve(
+      return(sagemaker.core::ImageUris$new()$retrieve(
         private$.image_framework(),
         self$sagemaker_session$paws_region_name,
         version=self$toolkit_version,
@@ -267,9 +269,7 @@ RLEstimator = R6Class("RLEstimator",
         SAGEMAKER_ESTIMATOR_VALUE)
       names(additional_hyperparameters) <- c(model_parameters$SAGEMAKER_OUTPUT_LOCATION , SAGEMAKER_ESTIMATOR)
 
-      # hyperparameters.update(Framework._json_encode_hyperparameters(additional_hyperparameters))
-      hyperparameters = modifyList(hyperparameters, additional_hyperparameters)
-
+      hyperparameters = modifyList(hyperparameters, private$.json_encode_hyperparameters(additional_hyperparameters))
       return(hyperparameters)
     },
 

@@ -8,7 +8,7 @@ An PyTorch SageMaker ``Model`` that can be deployed to a SageMaker
              ``Endpoint``.
 }
 \section{Super classes}{
-\code{\link[sagemaker.common:ModelBase]{sagemaker.common::ModelBase}} -> \code{\link[sagemaker.common:Model]{sagemaker.common::Model}} -> \code{\link[sagemaker.common:FrameworkModel]{sagemaker.common::FrameworkModel}} -> \code{PyTorchModel}
+\code{\link[sagemaker.mlcore:ModelBase]{sagemaker.mlcore::ModelBase}} -> \code{\link[sagemaker.mlcore:Model]{sagemaker.mlcore::Model}} -> \code{\link[sagemaker.mlcore:FrameworkModel]{sagemaker.mlcore::FrameworkModel}} -> \code{PyTorchModel}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -21,6 +21,7 @@ An PyTorch SageMaker ``Model`` that can be deployed to a SageMaker
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{PyTorchModel$new()}}
+\item \href{#method-register}{\code{PyTorchModel$register()}}
 \item \href{#method-prepare_container_def}{\code{PyTorchModel$prepare_container_def()}}
 \item \href{#method-serving_image_uri}{\code{PyTorchModel$serving_image_uri()}}
 \item \href{#method-clone}{\code{PyTorchModel$clone()}}
@@ -29,17 +30,16 @@ An PyTorch SageMaker ``Model`` that can be deployed to a SageMaker
 \if{html}{
 \out{<details ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="ModelBase" data-id="format">}\href{../../sagemaker.common/html/ModelBase.html#method-format}{\code{sagemaker.common::ModelBase$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="ModelBase" data-id="help">}\href{../../sagemaker.common/html/ModelBase.html#method-help}{\code{sagemaker.common::ModelBase$help()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id=".create_sagemaker_model">}\href{../../sagemaker.common/html/Model.html#method-.create_sagemaker_model}{\code{sagemaker.common::Model$.create_sagemaker_model()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="check_neo_region">}\href{../../sagemaker.common/html/Model.html#method-check_neo_region}{\code{sagemaker.common::Model$check_neo_region()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="compile">}\href{../../sagemaker.common/html/Model.html#method-compile}{\code{sagemaker.common::Model$compile()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="delete_model">}\href{../../sagemaker.common/html/Model.html#method-delete_model}{\code{sagemaker.common::Model$delete_model()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="deploy">}\href{../../sagemaker.common/html/Model.html#method-deploy}{\code{sagemaker.common::Model$deploy()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="enable_network_isolation">}\href{../../sagemaker.common/html/Model.html#method-enable_network_isolation}{\code{sagemaker.common::Model$enable_network_isolation()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="package_for_edge">}\href{../../sagemaker.common/html/Model.html#method-package_for_edge}{\code{sagemaker.common::Model$package_for_edge()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="register">}\href{../../sagemaker.common/html/Model.html#method-register}{\code{sagemaker.common::Model$register()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Model" data-id="transformer">}\href{../../sagemaker.common/html/Model.html#method-transformer}{\code{sagemaker.common::Model$transformer()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="ModelBase" data-id="format">}\href{../../sagemaker.mlcore/html/ModelBase.html#method-format}{\code{sagemaker.mlcore::ModelBase$format()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="ModelBase" data-id="help">}\href{../../sagemaker.mlcore/html/ModelBase.html#method-help}{\code{sagemaker.mlcore::ModelBase$help()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id=".create_sagemaker_model">}\href{../../sagemaker.mlcore/html/Model.html#method-.create_sagemaker_model}{\code{sagemaker.mlcore::Model$.create_sagemaker_model()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="check_neo_region">}\href{../../sagemaker.mlcore/html/Model.html#method-check_neo_region}{\code{sagemaker.mlcore::Model$check_neo_region()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="compile">}\href{../../sagemaker.mlcore/html/Model.html#method-compile}{\code{sagemaker.mlcore::Model$compile()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="delete_model">}\href{../../sagemaker.mlcore/html/Model.html#method-delete_model}{\code{sagemaker.mlcore::Model$delete_model()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="deploy">}\href{../../sagemaker.mlcore/html/Model.html#method-deploy}{\code{sagemaker.mlcore::Model$deploy()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="enable_network_isolation">}\href{../../sagemaker.mlcore/html/Model.html#method-enable_network_isolation}{\code{sagemaker.mlcore::Model$enable_network_isolation()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="package_for_edge">}\href{../../sagemaker.mlcore/html/Model.html#method-package_for_edge}{\code{sagemaker.mlcore::Model$package_for_edge()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Model" data-id="transformer">}\href{../../sagemaker.mlcore/html/Model.html#method-transformer}{\code{sagemaker.mlcore::Model$transformer()}}\out{</span>}
 }
 \out{</details>}
 }
@@ -106,6 +106,72 @@ worker per vCPU.}
 superclass :class:`~sagemaker.model.Model`.}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-register"></a>}}
+\if{latex}{\out{\hypertarget{method-register}{}}}
+\subsection{Method \code{register()}}{
+Creates a model package for creating SageMaker models or listing on Marketplace.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PyTorchModel$register(
+  content_types,
+  response_types,
+  inference_instances,
+  transform_instances,
+  model_package_name = NULL,
+  model_package_group_name = NULL,
+  image_uri = NULL,
+  model_metrics = NULL,
+  metadata_properties = NULL,
+  marketplace_cert = FALSE,
+  approval_status = NULL,
+  description = NULL,
+  drift_check_baselines = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{content_types}}{(list): The supported MIME types for the input data.}
+
+\item{\code{response_types}}{(list): The supported MIME types for the output data.}
+
+\item{\code{inference_instances}}{(list): A list of the instance types that are used to
+generate inferences in real-time.}
+
+\item{\code{transform_instances}}{(list): A list of the instance types on which a transformation
+job can be run or on which an endpoint can be deployed.}
+
+\item{\code{model_package_name}}{(str): Model Package name, exclusive to `model_package_group_name`,
+using `model_package_name` makes the Model Package un-versioned (default: None).}
+
+\item{\code{model_package_group_name}}{(str): Model Package Group name, exclusive to
+`model_package_name`, using `model_package_group_name` makes the Model Package
+versioned (default: None).}
+
+\item{\code{image_uri}}{(str): Inference image uri for the container. Model class' self.image will
+be used if it is None (default: None).}
+
+\item{\code{model_metrics}}{(ModelMetrics): ModelMetrics object (default: None).}
+
+\item{\code{metadata_properties}}{(MetadataProperties): MetadataProperties object (default: None).}
+
+\item{\code{marketplace_cert}}{(bool): A boolean value indicating if the Model Package is certified
+for AWS Marketplace (default: False).}
+
+\item{\code{approval_status}}{(str): Model Approval Status, values can be "Approved", "Rejected",
+or "PendingManualApproval" (default: "PendingManualApproval").}
+
+\item{\code{description}}{(str): Model Package description (default: None).}
+
+\item{\code{drift_check_baselines}}{(DriftCheckBaselines): DriftCheckBaselines object (default: None).}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A `sagemaker.model.ModelPackage` instance.
 }
 }
 \if{html}{\out{<hr>}}

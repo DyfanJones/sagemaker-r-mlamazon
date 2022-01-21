@@ -5,14 +5,16 @@
 #' @include mxnet_model.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title MXNet Class
 #' @description Handle end-to-end training and deployment of custom MXNet code.
 #' @export
 MXNet = R6Class("MXNet",
-  inherit = sagemaker.common::Framework,
+  inherit = sagemaker.mlcore::Framework,
   public = list(
 
     #' @field .LOWEST_SCRIPT_MODE_VERSION
@@ -93,12 +95,13 @@ MXNet = R6Class("MXNet",
         kwargs$enable_sagemaker_metrics = TRUE
       }
 
-      kwargs = c(entry_point = entry_point,
-                 source_dir = source_dir,
-                 hyperparameters = list(hyperparameters),
-                 image_uri = image_uri,
-                 kwargs)
-
+      kwargs = c(
+        entry_point = entry_point,
+        source_dir = source_dir,
+        hyperparameters = list(hyperparameters),
+        image_uri = image_uri,
+        kwargs
+      )
       do.call(super$initialize, kwargs)
 
       attr(self, "_framework_name") = "mxnet"
@@ -163,7 +166,7 @@ MXNet = R6Class("MXNet",
 
       kwargs$name = private$.get_or_create_name(kwargs$name)
 
-      kwargs = c(list(
+      kwargs = c(
         model_data = self$model_data,
         role = role %||% self$role,
         entry_point = entry_point,
@@ -175,7 +178,7 @@ MXNet = R6Class("MXNet",
         model_server_workers=model_server_workers,
         sagemaker_session=self$sagemaker_session,
         vpc_config=self$get_vpc_config(vpc_config_override),
-        dependencies=dependencies %||% self$dependencies),
+        dependencies=(dependencies %||% self$dependencies),
         kwargs
       )
 
@@ -198,8 +201,10 @@ MXNet = R6Class("MXNet",
 
       if (!is.null(self$framework_version) &&
           package_version(self$framework_version) < package_version(self$.LOWEST_SCRIPT_MODE_VERSION))
-        stop(sprintf("The distribution option is valid for only versions %s and higher",
-                     self$.LOWEST_SCRIPT_MODE_VERSION), call. = F)
+        ValueError$new(sprintf(
+          "The distribution option is valid for only versions %s and higher",
+          self$.LOWEST_SCRIPT_MODE_VERSION)
+        )
 
       enabled = distribution$parameter_server$enabled %||% FALSE
       self$.hyperparameters[[self$LAUNCH_PS_ENV_NAME]] = enabled
