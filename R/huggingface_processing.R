@@ -2,6 +2,7 @@
 # https://github.com/aws/sagemaker-python-sdk/blob/master/src/sagemaker/huggingface/processing.py
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 #' @import sagemaker.mlcore
 

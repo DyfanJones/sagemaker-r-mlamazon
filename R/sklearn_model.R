@@ -4,6 +4,7 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 #' @import sagemaker.mlcore
 #' @import lgr
@@ -23,10 +24,21 @@ SKLearnPredictor = R6Class("SKLearnPredictor",
     #'              manages interactions with Amazon SageMaker APIs and any other
     #'              AWS services needed. If not specified, the estimator creates one
     #'              using the default AWS configuration chain.
+    #' @param serializer (sagemaker.serializers.BaseSerializer): Optional. Default
+    #'              serializes input data to .npy format. Handles lists and numpy
+    #'              arrays.
+    #' @param deserializer (sagemaker.deserializers.BaseDeserializer): Optional.
+    #'              Default parses the response from .npy format to numpy array.
     initialize = function(endpoint_name,
-                          sagemaker_session=NULL){
+                          sagemaker_session=NULL,
+                          serializer=NumpySerializer$new(),
+                          deserializer=NumpyDeserializer$new()){
       super$initialize(
-        endpoint_name, sagemaker_session, NumpySerializer$new(), NumpyDeserializer$new())
+        endpoint_name,
+        sagemaker_session,
+        serializer=serializer,
+        deserializer=deserializer
+      )
     }
   ),
   lock_objects = F
@@ -37,7 +49,7 @@ SKLearnPredictor = R6Class("SKLearnPredictor",
 #'              ``Endpoint``.
 #' @export
 SKLearnModel = R6Class("SKLearnModel",
-  inherit = sagemaker.common::FrameworkModel,
+  inherit = sagemaker.mlcore::FrameworkModel,
   public = list(
 
     #' @description Initialize an SKLearnModel.
@@ -136,7 +148,7 @@ SKLearnModel = R6Class("SKLearnModel",
     #' @return str: The appropriate image URI based on the given parameters.
     serving_image_uri = function(region_name,
                                  instance_type){
-      return(ImageUris$new()$retrieve(
+      return(sagemaker.core::ImageUris$new()$retrieve(
         attr(self, "_framework_name"),
         region_name,
         version=self$framework_version,

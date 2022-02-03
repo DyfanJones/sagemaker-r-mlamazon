@@ -41,7 +41,12 @@ Predictor for inference against XGBoost Endpoints.
 \subsection{Method \code{new()}}{
 Initialize an ``XGBoostPredictor``.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{XGBoostPredictor$new(endpoint_name, sagemaker_session = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{XGBoostPredictor$new(
+  endpoint_name,
+  sagemaker_session = NULL,
+  serializer = LibSVMSerializer$new(),
+  deserializer = CSVDeserializer$new()
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -53,6 +58,12 @@ Initialize an ``XGBoostPredictor``.
 interactions with Amazon SageMaker APIs and any other AWS services needed.
 If not specified, the estimator creates one using the default AWS configuration
 chain.}
+
+\item{\code{serializer}}{(sagemaker.serializers.BaseSerializer): Optional. Default
+serializes input data to LibSVM format}
+
+\item{\code{deserializer}}{(sagemaker.deserializers.BaseDeserializer): Optional.
+Default parses the response from text/csv to a Python list.}
 }
 \if{html}{\out{</div>}}
 }

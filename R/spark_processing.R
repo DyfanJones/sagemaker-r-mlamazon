@@ -4,6 +4,7 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 #' @import lgr
 #' @importFrom jsonlite toJSON fromJSON
@@ -75,7 +76,7 @@
                            network_config=NULL){
        self$history_server = NULL
        private$.spark_event_logs_s3_uri = NULL
-       session = sagemaker_session %||% Session$new()
+       session = sagemaker_session %||% sagemaker.core::Session$new()
        region = session$paws_region_name
 
        self$image_uri = private$.retrieve_image_uri(
@@ -100,6 +101,34 @@
          env=env,
          tags=tags,
          network_config=network_config)
+     },
+
+     #' @description For processors (:class:`~sagemaker.spark.processing.PySparkProcessor`,
+     #'              :class:`~sagemaker.spark.processing.SparkJar`) that have special
+     #'              run() arguments, this object contains the normalized arguments for passing to
+     #'              :class:`~sagemaker.workflow.steps.ProcessingStep`.
+     #' @param code (str): This can be an S3 URI or a local path to a file with the framework
+     #'              script to run.
+     #' @param inputs (list[:class:`~sagemaker.processing.ProcessingInput`]): Input files for
+     #'              the processing job. These must be provided as
+     #'              :class:`~sagemaker.processing.ProcessingInput` objects (default: None).
+     #' @param outputs (list[:class:`~sagemaker.processing.ProcessingOutput`]): Outputs for
+     #'              the processing job. These can be specified as either path strings or
+     #'              :class:`~sagemaker.processing.ProcessingOutput` objects (default: None).
+     #' @param arguments (list[str]): A list of string arguments to be passed to a
+     #'              processing job (default: None).
+     #' @return Returns a RunArgs object.
+     get_run_args = function(code,
+                             inputs=NULL,
+                             outputs=NULL,
+                             arguments=NULL){
+       return(super$get_run_args(
+         code=code,
+         inputs=inputs,
+         outputs=outputs,
+         arguments=arguments
+        )
+       )
      },
 
      #' @description Runs a processing job.
@@ -133,15 +162,17 @@
                     kms_key=NULL){
        self$.current_job_name = private$.generate_current_job_name(job_name=job_name)
 
-       super$run(submit_app,
-                 inputs,
-                 outputs,
-                 arguments,
-                 wait,
-                 logs,
-                 job_name,
-                 experiment_config,
-                 kms_key)
+       super$run(
+         submit_app,
+         inputs,
+         outputs,
+         arguments,
+         wait,
+         logs,
+         job_name,
+         experiment_config,
+         kms_key
+       )
      },
 
      #' @description Starts a Spark history server.
@@ -149,7 +180,8 @@
      start_history = function(spark_event_logs_s3_uri=NULL){
        if (.ecr_login_if_needed(self$sagemaker_session$paws_session, self$image_uri)){
          LOGGER$info("Pulling spark history server image...")
-         .pull_image(self$image_uri)}
+         .pull_image(self$image_uri)
+       }
 
        history_server_env_variables = private$.prepare_history_server_env_variables(
          spark_event_logs_s3_uri
@@ -167,7 +199,8 @@
        if (!islistempty(self$history_server)){
          LOGGER$info("History server is running, terminating history server")
          self$history_server$down()
-         self$history_server = NULL}
+         self$history_server = NULL
+       }
      }
    ),
    private = list(
@@ -233,32 +266,30 @@
          }
        }
        return(list("Inputs" = inputs, "Outputs" = outputs))
-   },
+     },
 
-   # Builds an image URI.
-   .retrieve_image_uri = function(image_uri = NULL,
-                                  framework_version = NULL,
-                                  py_version = NULL,
-                                  container_version = NULL,
-                                  region = NULL,
-                                  instance_type = NULL){
-      if (!is.null(image_uri)){
+     # Builds an image URI.
+     .retrieve_image_uri = function(image_uri = NULL,
+                                    framework_version = NULL,
+                                    py_version = NULL,
+                                    container_version = NULL,
+                                    region = NULL,
+                                    instance_type = NULL){
+       if (!is.null(image_uri)){
          if (is.null(py_version) || is.null(container_version))
-            stop(
-               "Both or neither of py_version and container_version should be set",
-               call. = F)
-
+           ValueError$new(
+             "Both or neither of py_version and container_version should be set"
+           )
          if (!is.null(container_version))
-            container_version = sprintf("v%s", container_version)
-
-            return(ImageUris$new()$retrieve(
-               "spark",
-               region,
-               version=framework_version,
-               instance_type=instance_type,
-               py_version=py_version,
-               container_version=container_version)
-            )
+           container_version = sprintf("v%s", container_version)
+         return(sagemaker.core::ImageUris$new()$retrieve(
+           "spark",
+           region,
+           version=framework_version,
+           instance_type=instance_type,
+           py_version=py_version,
+           container_version=container_version)
+         )
       }
       return(image_uri)
    },
@@ -271,25 +302,28 @@
       if(inherits(configuration, "list")){
          keys = names(configuration)
          if (!("Classification" %in% keys) || !("Properties" %in% keys))
-            stop("Missing one or more required keys in configuration dictionary ",
-                 sprintf("%s Please see %s for more information", configuration, emr_configure_apps_url),
-                 call. = F)
+           ValueError$new(
+             "Missing one or more required keys in configuration dictionary ",
+             sprintf("%s Please see %s for more information", configuration, emr_configure_apps_url)
+           )
 
          for (key in keys){
             if (!(key %in% private$.valid_configuration_keys))
-               stop(sprintf("Invalid key: %s. Must be one of %s. ", key, toJSON(private$.valid_configuration_keys, auto_unbox = T)),
-                    sprintf("Please see %sfor more information.", emr_configure_apps_url),
-                    call. = F)
+               ValueError$new(
+                 sprintf("Invalid key: %s. Must be one of %s. ", key, toJSON(private$.valid_configuration_keys, auto_unbox = T)),
+                 sprintf("Please see %sfor more information.", emr_configure_apps_url)
+               )
             if (key == "Classification")
                if (!(configuration[[key]] %in% private$.valid_configuration_classifications))
-                  stop(sprintf("Invalid classification: %s. Must be one of %s", key,
-                       toJSON(private$.valid_configuration_classifications, auto_unbox = T)),
-                       call. = F)
+                 ValueError$new(
+                   sprintf("Invalid classification: %s. Must be one of %s", key,
+                           toJSON(private$.valid_configuration_classifications, auto_unbox = T))
+                )
          }
       }
 
       # if list is unnamed check components
-      if (is.null(names(configuration))){
+      if (!is_list_named(configuration)){
          for(item in configuration)
             private$.validate_configuration(item)
       }
@@ -335,10 +369,11 @@
    .stage_submit_deps = function(submit_deps = NULL,
                                  input_channel_name = NULL){
       if (is.null(submit_deps))
-         stop(sprintf("submit_deps value may not be empty. %s",private$.submit_deps_error_message),
-              call. = F)
-      if (is.null(input_channel_name))
-         stop("input_channel_name value may not be empty.", call.= F)
+        ValueError$new(
+          sprintf("submit_deps value may not be empty. %s",private$.submit_deps_error_message)
+        )
+      if(is.null(input_channel_name))
+        ValueError$new("input_channel_name value may not be empty.")
 
       input_channel_s3_uri = sprintf("s3://%s/%s/input/%s", self$sagemaker_session$default_bucket(), self$.current_job_name, input_channel_name)
 
@@ -355,14 +390,16 @@
          # Local files are copied to temp directory to be uploaded to S3
          } else if (is.null(dep_url$scheme) || dep_url$scheme == "file") {
             if (!file_test("-f", dep_path)){
-               stop(sprintf("submit_deps path %s is not a valid local file. %s", dep_path, private$.submit_deps_error_message),
-                    call. = F)
-            LOGGER$info("Copying dependency from local path %s to tmpdir %s", dep_path, tmpdir)
-            file.copy(dep_path, tmpdir)
+               ValueError$new(
+                 sprintf("submit_deps path %s is not a valid local file. %s", dep_path, private$.submit_deps_error_message)
+               )
+              LOGGER$info("Copying dependency from local path %s to tmpdir %s", dep_path, tmpdir)
+              file.copy(dep_path, tmpdir)
             }
          } else {
-            stop(sprintf("submit_deps path %s references unsupported filesystem ", dep_path),
-                 sprintf("scheme: %s %s", dep_url$scheme, private$.submit_deps_error_message)
+            ValueError$new(
+              sprintf("submit_deps path %s references unsupported filesystem ", dep_path),
+              sprintf("scheme: %s %s", dep_url$scheme, private$.submit_deps_error_message)
             )
          }
       }
@@ -417,10 +454,10 @@
             .HistoryServer$new()$arg_event_logs_s3_uri
             ]] = private$.spark_event_logs_s3_uri
       } else {
-         stop(
-            "SPARK_EVENT_LOGS_S3_URI not present. You can specify spark_event_logs_s3_uri ",
-            "either in run() or start_history_server()",
-            call. = F)
+        ValueError$new(
+          "SPARK_EVENT_LOGS_S3_URI not present. You can specify spark_event_logs_s3_uri ",
+          "either in run() or start_history_server()"
+        )
       }
 
       history_server_env_variables = c(history_server_env_variables, private$.config_aws_credentials())
@@ -497,10 +534,11 @@
    #    spark_output_s3_path (str): The URI of the Spark output S3 Path.
    .validate_s3_uri = function(spark_output_s3_path){
       if (url_parse(spark_output_s3_path)$scheme != "s3")
-         stop(sprintf("Invalid s3 path: %s. Please enter something like ", spark_output_s3_path),
-            "s3://bucket-name/folder-name",
-            call. = F)
-   },
+         ValueError$new(
+           sprintf("Invalid s3 path: %s. Please enter something like ", spark_output_s3_path),
+           "s3://bucket-name/folder-name"
+         )
+     },
 
    # Configure AWS credentials.
    .config_aws_credentials = function(){
@@ -545,7 +583,7 @@
          self$command = c(self$command, c(sprintf("--%s", input_channel_name_dict[[file_type]]), spark_files$SparkOpt))
 
       return(inputs)
-   }
+    }
    ),
    lock_objects = F
 )
@@ -628,6 +666,64 @@ PySparkProcessor = R6Class("PySparkProcessor",
             network_config=network_config)
       },
 
+      #' @description Returns a RunArgs object.
+      #'              This object contains the normalized inputs, outputs and arguments
+      #'              needed when using a ``PySparkProcessor`` in a
+      #'              :class:`~sagemaker.workflow.steps.ProcessingStep`.
+      #' @param submit_app (str): Path (local or S3) to Python file to submit to Spark
+      #'              as the primary application. This is translated to the `code`
+      #'              property on the returned `RunArgs` object.
+      #' @param submit_py_files (list[str]): List of paths (local or S3) to provide for
+      #'              `spark-submit --py-files` option
+      #' @param submit_jars (list[str]): List of paths (local or S3) to provide for
+      #'              `spark-submit --jars` option
+      #' @param submit_files (list[str]): List of paths (local or S3) to provide for
+      #'              `spark-submit --files` option
+      #' @param inputs (list[:class:`~sagemaker.processing.ProcessingInput`]): Input files for
+      #'              the processing job. These must be provided as
+      #'              :class:`~sagemaker.processing.ProcessingInput` objects (default: None).
+      #' @param outputs (list[:class:`~sagemaker.processing.ProcessingOutput`]): Outputs for
+      #'              the processing job. These can be specified as either path strings or
+      #'              :class:`~sagemaker.processing.ProcessingOutput` objects (default: None).
+      #' @param arguments (list[str]): A list of string arguments to be passed to a
+      #'              processing job (default: None).
+      #' @param job_name (str): Processing job name. If not specified, the processor generates
+      #'              a default job name, based on the base job name and current timestamp.
+      #' @param configuration (list[dict] or dict): Configuration for Hadoop, Spark, or Hive.
+      #'              List or dictionary of EMR-style classifications.
+      #'              \url{https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-configure-apps.html}
+      #' @param spark_event_logs_s3_uri (str): S3 path where spark application events will
+      #'              be published to.
+      get_args_run = function(submit_app,
+                              submit_py_files=NULL,
+                              submit_jars=NULL,
+                              submit_files=NULL,
+                              inputs=NULL,
+                              outputs=NULL,
+                              arguments=NULL,
+                              job_name=NULL,
+                              configuration=NULL,
+                              spark_event_logs_s3_uri=NULL){
+        self$.current_job_name = private$.generate_current_job_name(job_name=job_name)
+
+        extended_args = private$.extend_processing_args(
+          inputs=inputs,
+          outputs=outputs,
+          submit_py_files=submit_py_files,
+          submit_jars=submit_jars,
+          submit_files=submit_files,
+          configuration=configuration,
+          spark_event_logs_s3_uri=spark_event_logs_s3_uri
+        )
+        return(super$get_run_args(
+          code=submit_app,
+          inputs=extended_args$Inputs,
+          outputs=extended_args$Outputs,
+          arguments=arguments
+          )
+        )
+      },
+
       #' @description Runs a processing job.
       #' @param submit_app (str): Path (local or S3) to Python file to submit to Spark
       #'              as the primary application
@@ -674,32 +770,28 @@ PySparkProcessor = R6Class("PySparkProcessor",
                      configuration=NULL,
                      spark_event_logs_s3_uri=NULL,
                      kms_key=NULL){
-         self$.current_job_name = private$.generate_current_job_name(job_name=job_name)
-         self$command = list(.SparkProcessorBase$private_fields$.default_command)
+        self$.current_job_name = private$.generate_current_job_name(job_name=job_name)
+        self$command = list(.SparkProcessorBase$private_fields$.default_command)
+        extended_args = private$.extend_processing_args(
+          inputs,
+          outputs,
+          submit_py_files=submit_py_files,
+          submit_jars=submit_jars,
+          submit_files=submit_files,
+          configuration=configuration,
+          spark_event_logs_s3_uri=spark_event_logs_s3_uri
+       )
 
-         if (missing(submit_app))
-            stop("submit_app is required", call. = F)
-
-         extended_args = private$.extend_processing_args(
-            inputs,
-            outputs,
-            submit_py_files=submit_py_files,
-            submit_jars=submit_jars,
-            submit_files=submit_files,
-            configuration=configuration,
-            spark_event_logs_s3_uri=spark_event_logs_s3_uri
-         )
-
-         super$run(
-            submit_app=submit_app,
-            inputs=extended_args$Inputs,
-            outputs=extended_args$Outputs,
-            arguments=arguments,
-            wait=wait,
-            logs=logs,
-            job_name=self$.current_job_name,
-            experiment_config=experiment_config,
-         )
+       super$run(
+          submit_app=submit_app,
+          inputs=extended_args$Inputs,
+          outputs=extended_args$Outputs,
+          arguments=arguments,
+          wait=wait,
+          logs=logs,
+          job_name=self$.current_job_name,
+          experiment_config=experiment_config,
+       )
       }
    ),
    private = list(
@@ -712,18 +804,17 @@ PySparkProcessor = R6Class("PySparkProcessor",
       .extend_processing_args = function(inputs,
                                          outputs,
                                          ...){
-         kwargs = list(...)
-         extended_inputs = private$.handle_script_dependencies(
-            inputs, kwargs$submit_py_files, FileType$PYTHON
-         )
-         extended_inputs = private$.handle_script_dependencies(
-            extended_inputs, kwargs$submit_jars, FileType$JAR
-         )
-         extended_inputs = private$.handle_script_dependencies(
-            extended_inputs, kwargs$submit_files, FileType$FILE
-         )
-
-         return(super$.extend_processing_args(extended_inputs, outputs, ...))
+        kwargs = list(...)
+        extended_inputs = private$.handle_script_dependencies(
+          inputs, kwargs$submit_py_files, FileType$PYTHON
+        )
+        extended_inputs = private$.handle_script_dependencies(
+          extended_inputs, kwargs$submit_jars, FileType$JAR
+        )
+        extended_inputs = private$.handle_script_dependencies(
+          extended_inputs, kwargs$submit_files, FileType$FILE
+        )
+        return(super$.extend_processing_args(extended_inputs, outputs, ...))
       }
    ),
    lock_objects =  F
@@ -807,6 +898,65 @@ SparkJarProcessor = R6Class("SparkJarProcessor",
             network_config=network_config)
       },
 
+      #' @description This object contains the normalized inputs, outputs and arguments
+      #'              needed when using a ``SparkJarProcessor`` in a
+      #'              :class:`~sagemaker.workflow.steps.ProcessingStep`.
+      #' @param submit_app (str): Path (local or S3) to Python file to submit to Spark
+      #'              as the primary application. This is translated to the `code`
+      #'              property on the returned `RunArgs` object
+      #' @param submit_class (str): Java class reference to submit to Spark as the primary
+      #'              application
+      #' @param submit_jars (list[str]): List of paths (local or S3) to provide for
+      #'              `spark-submit --jars` option
+      #' @param submit_files (list[str]): List of paths (local or S3) to provide for
+      #'              `spark-submit --files` option
+      #' @param inputs (list[:class:`~sagemaker.processing.ProcessingInput`]): Input files for
+      #'              the processing job. These must be provided as
+      #'              :class:`~sagemaker.processing.ProcessingInput` objects (default: None).
+      #' @param outputs (list[:class:`~sagemaker.processing.ProcessingOutput`]): Outputs for
+      #'              the processing job. These can be specified as either path strings or
+      #'              :class:`~sagemaker.processing.ProcessingOutput` objects (default: None).
+      #' @param arguments (list[str]): A list of string arguments to be passed to a
+      #'              processing job (default: None).
+      #' @param job_name (str): Processing job name. If not specified, the processor generates
+      #'              a default job name, based on the base job name and current timestamp.
+      #' @param configuration (list[dict] or dict): Configuration for Hadoop, Spark, or Hive.
+      #'              List or dictionary of EMR-style classifications.
+      #'              \url{https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-configure-apps.html}
+      #' @param spark_event_logs_s3_uri (str): S3 path where spark application events will
+      #'              be published to.
+      #' @return Returns a RunArgs object.
+      get_run_args = function(submit_app,
+                              submit_class=NULL,
+                              submit_jars=NULL,
+                              submit_files=NULL,
+                              inputs=NULL,
+                              outputs=NULL,
+                              arguments=NULL,
+                              job_name=NULL,
+                              configuration=NULL,
+                              spark_event_logs_s3_uri=NULL){
+        self$.current_job_name = private$.generate_current_job_name(job_name=job_name)
+
+        extended_args = self._extend_processing_args(
+          inputs=inputs,
+          outputs=outputs,
+          submit_class=submit_class,
+          submit_jars=submit_jars,
+          submit_files=submit_files,
+          configuration=configuration,
+          spark_event_logs_s3_uri=spark_event_logs_s3_uri
+        )
+
+        return(super$get_run_args(
+          code=submit_app,
+          inputs=extended_args$Inputs,
+          outputs=extended_args$Outputs,
+          arguments=arguments
+          )
+        )
+      },
+
       #' @description Runs a processing job.
       #' @param submit_app (str): Path (local or S3) to Jar file to submit to Spark as
       #'              the primary application
@@ -853,54 +1003,49 @@ SparkJarProcessor = R6Class("SparkJarProcessor",
                      configuration=NULL,
                      spark_event_logs_s3_uri=NULL,
                      kms_key=NULL){
-         self$.current_job_name = private$.generate_current_job_name(job_name=job_name)
-         self$command = list(.SparkProcessorBase$private_fields$.default_command)
-
-         if (missing(submit_app))
-            stop("submit_app is required", call. = F)
-
-         extended_args = private$.extend_processing_args(
-            inputs,
-            outputs,
-            submit_class=submit_class,
-            submit_jars=submit_jars,
-            submit_files=submit_files,
-            configuration=configuration,
-            spark_event_logs_s3_uri=spark_event_logs_s3_uri)
-
-         super$run(
-            submit_app=submit_app,
-            inputs=extended_args$Inputs,
-            outputs=extended_args$Outputs,
-            arguments=arguments,
-            wait=wait,
-            logs=logs,
-            job_name=self._current_job_name,
-            experiment_config=experiment_config,
-            kms_key=kms_key)
+        self$.current_job_name = private$.generate_current_job_name(job_name=job_name)
+        extended_args = private$.extend_processing_args(
+          inputs,
+          outputs,
+          submit_class=submit_class,
+          submit_jars=submit_jars,
+          submit_files=submit_files,
+          configuration=configuration,
+          spark_event_logs_s3_uri=spark_event_logs_s3_uri)
+        super$run(
+          submit_app=submit_app,
+          inputs=extended_args$Inputs,
+          outputs=extended_args$Outputs,
+          arguments=arguments,
+          wait=wait,
+          logs=logs,
+          job_name=self._current_job_name,
+          experiment_config=experiment_config,
+          kms_key=kms_key
+        )
       }
    ),
    private = list(
-      .extend_processing_args = function(inputs,
-                                         outputs,
-                                         ...){
-         kwargs = list(...)
-         if (!islistempty(kwargs$submit_class))
-            self$command = c(self$command, c("--class", kwargs$submit_class))
-         else
-            stop("submit_class is required", call. = F)
+     .extend_processing_args = function(inputs,
+                                        outputs,
+                                        ...){
+       kwargs = list(...)
+       if (!islistempty(kwargs$submit_class))
+          self$command = c(self$command, c("--class", kwargs$submit_class))
+       else
+          stop("submit_class is required", call. = F)
 
-         extended_inputs = private$.handle_script_dependencies(
-            inputs, kwargs$submit_jars, FileType$JAR
-         )
-         extended_inputs = private$.handle_script_dependencies(
-            extended_inputs, kwargs$submit_files, FileType$FILE
-         )
+       extended_inputs = private$.handle_script_dependencies(
+          inputs, kwargs$submit_jars, FileType$JAR
+       )
+       extended_inputs = private$.handle_script_dependencies(
+          extended_inputs, kwargs$submit_files, FileType$FILE
+       )
 
-         return(super$.extend_processing_args(extended_inputs, outputs, ...))
-      }
-   ),
-   lock_objects = F
+       return(super$.extend_processing_args(extended_inputs, outputs, ...))
+    }
+  ),
+ lock_objects = F
 )
 
 # History server class that is responsible for starting history server.
@@ -965,7 +1110,7 @@ SparkJarProcessor = R6Class("SparkJarProcessor",
 
 # Enum of file type
 FileType = Enum(
-      JAR = 1,
-      PYTHON = 2,
-      FILE = 3
+  JAR = 1,
+  PYTHON = 2,
+  FILE = 3
 )

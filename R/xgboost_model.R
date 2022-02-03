@@ -2,9 +2,11 @@
 # https://github.com/aws/sagemaker-python-sdk/blob/master/src/sagemaker/xgboost/model.py
 
 #' @include xgboost_default.R
+#' @include xgboost_utils.R
 
 #' @import R6
-#' @import sagemaker.common
+#' @import sagemaker.core
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title XGBoostPredictor Class
@@ -22,11 +24,20 @@ XGBoostPredictor = R6Class("XGBoostPredictor",
     #'              interactions with Amazon SageMaker APIs and any other AWS services needed.
     #'              If not specified, the estimator creates one using the default AWS configuration
     #'              chain.
+    #' @param serializer (sagemaker.serializers.BaseSerializer): Optional. Default
+    #'              serializes input data to LibSVM format
+    #' @param deserializer (sagemaker.deserializers.BaseDeserializer): Optional.
+    #'              Default parses the response from text/csv to a Python list.
     initialize = function(endpoint_name,
-                          sagemaker_session=NULL){
+                          sagemaker_session=NULL,
+                          serializer=LibSVMSerializer$new(),
+                          deserializer=CSVDeserializer$new()){
       super$initialize(
-        endpoint_name, sagemaker_session, LibSVMSerializer$new(), CSVDeserializer$new()
-        )
+        endpoint_name,
+        sagemaker_session,
+        serializer=serializer,
+        deserializer=deserializer
+      )
     }
   )
 )
@@ -35,7 +46,7 @@ XGBoostPredictor = R6Class("XGBoostPredictor",
 #' @description An XGBoost SageMaker ``Model`` that can be deployed to a SageMaker ``Endpoint``.
 #' @export
 XGBoostModel = R6Class("XGBoostModel",
-  inherit = sagemaker.common::FrameworkModel,
+  inherit = sagemaker.mlcore::FrameworkModel,
   public = list(
 
     #' @description Initialize an XGBoostModel.
@@ -79,6 +90,9 @@ XGBoostModel = R6Class("XGBoostModel",
       self$model_server_workers = model_server_workers
 
       attr(self, "_framework_name") = XGBOOST_NAME
+
+      validate_py_version(py_version)
+      validate_framework_version(framework_version)
     },
 
     #' @description Return a container definition with framework configuration
@@ -101,10 +115,14 @@ XGBoostModel = R6Class("XGBoostModel",
       deploy_key_prefix = model_code_key_prefix(self$key_prefix, self$name, deploy_image)
       private$.upload_code(deploy_key_prefix)
       deploy_env = list(self$env)
-      deploy_env = c(deploy_env, private$.framework_env_vars())
+      deploy_env = modifyList(deploy_env, private$.framework_env_vars())
 
       if (!is.null(self$model_server_workers))
         deploy_env[[toupper(mode_parameters$MODEL_SERVER_WORKERS_PARAM_NAME)]] = as.character(self$model_server_workers)
+
+      model_data = (
+        if (self$enable_network_isolation()) self$repacked_model_data else self$model_data
+      )
       return(container_def(deploy_image, self$model_data, deploy_env))
     },
 
@@ -115,7 +133,7 @@ XGBoostModel = R6Class("XGBoostModel",
     serving_image_uri = function(region_name,
                                  instance_type){
       if(missing(region_name)) region_name = self$sagemaker_session$paws_region_name
-      return(ImageUris$new()$retrieve(
+      return(sagemaker.core::ImageUris$new()$retrieve(
         attr(self, "_framework_name"),
         region_name,
         version=self$framework_version,

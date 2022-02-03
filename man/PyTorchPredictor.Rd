@@ -40,7 +40,12 @@ This is able to serialize Python lists, dictionaries, and numpy arrays to
 \subsection{Method \code{new()}}{
 Initialize an ``PyTorchPredictor``.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PyTorchPredictor$new(endpoint_name, sagemaker_session = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PyTorchPredictor$new(
+  endpoint_name,
+  sagemaker_session = NULL,
+  serializer = NumpySerializer$new(),
+  deserializer = NumpyDeserializer$new()
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -53,6 +58,13 @@ on.}
 manages interactions with Amazon SageMaker APIs and any other
 AWS services needed. If not specified, the estimator creates one
 using the default AWS configuration chain.}
+
+\item{\code{serializer}}{(sagemaker.serializers.BaseSerializer): Optional. Default
+serializes input data to .npy format. Handles lists and numpy
+arrays.}
+
+\item{\code{deserializer}}{(sagemaker.deserializers.BaseDeserializer): Optional.
+Default parses the response from .npy format to numpy array.}
 }
 \if{html}{\out{</div>}}
 }

@@ -6,7 +6,9 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title XGBoost Class
@@ -14,7 +16,7 @@
 #'              customer provided XGBoost entry point script.
 #' @export
 XGBoost = R6Class("XGBoost",
-  inherit = sagemaker.common::Framework,
+  inherit = sagemaker.mlcore::Framework,
   public = list(
 
     #' @description This ``Estimator`` executes an XGBoost based SageMaker Training Job.
@@ -60,11 +62,14 @@ XGBoost = R6Class("XGBoost",
                           py_version="py3",
                           image_uri=NULL,
                           ...){
-      super$initialize(
-        entry_point=entry_point, source_dir=source_dir, hyperparameters=hyperparameters, image_uri=image_uri, ...
-      )
-
       kwargs = list(...)
+      instance_type = renamed_kwargs(
+        "train_instance_type", "instance_type", kwargs[["instance_type"]], kwargs
+      )
+      kwargs = c(
+        entry_point=entry_point, source_dir=source_dir, hyperparameters=hyperparameters, image_uri=image_uri, kwargs
+      )
+      do.call(super$initialize, kwargs)
 
       self$py_version = py_version
       self$framework_version = framework_version
@@ -72,7 +77,7 @@ XGBoost = R6Class("XGBoost",
       attr(self, "_framework_name") = XGBOOST_NAME
 
       if (is.null(image_uri)){
-        self.image_uri = ImageUris$new()$retrieve(
+        self$image_uri = sagemaker.core::ImageUris$new()$retrieve(
           attr(self, "_framework_name"),
           self$sagemaker_session$paws_region_name,
           version=framework_version,

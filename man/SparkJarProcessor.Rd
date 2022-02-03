@@ -13,6 +13,7 @@ Handles Amazon SageMaker processing tasks for jobs using Spark with Java or Scal
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{SparkJarProcessor$new()}}
+\item \href{#method-get_run_args}{\code{SparkJarProcessor$get_run_args()}}
 \item \href{#method-run}{\code{SparkJarProcessor$run()}}
 \item \href{#method-clone}{\code{SparkJarProcessor$clone()}}
 }
@@ -21,7 +22,6 @@ Handles Amazon SageMaker processing tasks for jobs using Spark with Java or Scal
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Processor" data-id="format">}\href{../../sagemaker.common/html/Processor.html#method-format}{\code{sagemaker.common::Processor$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="ScriptProcessor" data-id="get_run_args">}\href{../../sagemaker.common/html/ScriptProcessor.html#method-get_run_args}{\code{sagemaker.common::ScriptProcessor$get_run_args()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="sagemaker.mlframework" data-topic=".SparkProcessorBase" data-id="start_history">}\href{../../sagemaker.mlframework/html/.SparkProcessorBase.html#method-start_history}{\code{sagemaker.mlframework::.SparkProcessorBase$start_history()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="sagemaker.mlframework" data-topic=".SparkProcessorBase" data-id="terminate_history_server">}\href{../../sagemaker.mlframework/html/.SparkProcessorBase.html#method-terminate_history_server}{\code{sagemaker.mlframework::.SparkProcessorBase$terminate_history_server()}}\out{</span>}
 }
@@ -108,6 +108,71 @@ object that configures network isolation, encryption of
 inter-container traffic, security group IDs, and subnets.}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_run_args"></a>}}
+\if{latex}{\out{\hypertarget{method-get_run_args}{}}}
+\subsection{Method \code{get_run_args()}}{
+This object contains the normalized inputs, outputs and arguments
+             needed when using a ``SparkJarProcessor`` in a
+             :class:`~sagemaker.workflow.steps.ProcessingStep`.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SparkJarProcessor$get_run_args(
+  submit_app,
+  submit_class = NULL,
+  submit_jars = NULL,
+  submit_files = NULL,
+  inputs = NULL,
+  outputs = NULL,
+  arguments = NULL,
+  job_name = NULL,
+  configuration = NULL,
+  spark_event_logs_s3_uri = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{submit_app}}{(str): Path (local or S3) to Python file to submit to Spark
+as the primary application. This is translated to the `code`
+property on the returned `RunArgs` object}
+
+\item{\code{submit_class}}{(str): Java class reference to submit to Spark as the primary
+application}
+
+\item{\code{submit_jars}}{(list[str]): List of paths (local or S3) to provide for
+`spark-submit --jars` option}
+
+\item{\code{submit_files}}{(list[str]): List of paths (local or S3) to provide for
+`spark-submit --files` option}
+
+\item{\code{inputs}}{(list[:class:`~sagemaker.processing.ProcessingInput`]): Input files for
+the processing job. These must be provided as
+:class:`~sagemaker.processing.ProcessingInput` objects (default: None).}
+
+\item{\code{outputs}}{(list[:class:`~sagemaker.processing.ProcessingOutput`]): Outputs for
+the processing job. These can be specified as either path strings or
+:class:`~sagemaker.processing.ProcessingOutput` objects (default: None).}
+
+\item{\code{arguments}}{(list[str]): A list of string arguments to be passed to a
+processing job (default: None).}
+
+\item{\code{job_name}}{(str): Processing job name. If not specified, the processor generates
+a default job name, based on the base job name and current timestamp.}
+
+\item{\code{configuration}}{(list[dict] or dict): Configuration for Hadoop, Spark, or Hive.
+List or dictionary of EMR-style classifications.
+\url{https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-configure-apps.html}}
+
+\item{\code{spark_event_logs_s3_uri}}{(str): S3 path where spark application events will
+be published to.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Returns a RunArgs object.
 }
 }
 \if{html}{\out{<hr>}}

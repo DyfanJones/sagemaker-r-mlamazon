@@ -6,14 +6,16 @@
 #' @include tensorflow_model.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title TensorFlow Class
 #' @description Handle end-to-end training and deployment of user-provided TensorFlow code.
 #' @export
 TensorFlow = R6Class("TensorFlow",
-  inherit = sagemaker.common::Framework,
+  inherit = sagemaker.mlcore::Framework,
   public = list(
 
     #' @description Initialize a ``TensorFlow`` estimator.
@@ -103,7 +105,8 @@ TensorFlow = R6Class("TensorFlow",
           framework_version=framework_version,
           py_version=py_version,
           distribution=distribution,
-          image_uri=image_uri)
+          image_uri=image_uri
+        )
       }
 
       if (!("enable_sagemaker_metrics" %in% names(kwargs))){
@@ -112,8 +115,7 @@ TensorFlow = R6Class("TensorFlow",
           kwargs$enable_sagemaker_metrics = TRUE
       }
 
-      kwargs = c(image_uri = image_uri,
-                 kwargs)
+      kwargs = c(image_uri = image_uri, kwargs)
       do.call(super$initialize, kwargs)
 
       self$model_dir = model_dir
@@ -268,7 +270,7 @@ TensorFlow = R6Class("TensorFlow",
         LOGGER$warn(paste(
           "No finished training job found associated with this estimator. Please make sure",
           "this estimator is only used for building workflow config"))
-        return (Transformer$new(
+        return (sagemaker.common::Transformer$new(
           model_name=model_name,
           instance_count=instance_count,
           instance_type=instance_type,

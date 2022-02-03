@@ -5,6 +5,7 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 #' @import sagemaker.mlcore
 #' @import lgr
@@ -71,7 +72,7 @@ AutoML = R6Class("AutoML",
       self$current_job_name = NULL
       self$.auto_ml_job_desc = NULL
       self$.best_candidate = NULL
-      self$sagemaker_session = sagemaker_session %||% Session$new()
+      self$sagemaker_session = sagemaker_session %||% sagemaker.core::Session$new()
 
       private$.check_problem_type_and_job_objective(self$problem_type, self$job_objective)
     },

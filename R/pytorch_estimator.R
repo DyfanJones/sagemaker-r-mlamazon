@@ -6,14 +6,16 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
+#' @import sagemaker.mlcore
 #' @import lgr
 
 #' @title PyTorch Class
 #' @description Handle end-to-end training and deployment of custom PyTorch code.
 #' @export
 PyTorch = R6Class("PyTorch",
-  inherit = sagemaker.common::Framework,
+  inherit = sagemaker.mlcore::Framework,
   public = list(
 
     #' @description This ``Estimator`` executes an PyTorch script in a managed PyTorch
@@ -62,6 +64,11 @@ PyTorch = R6Class("PyTorch",
     #'              If ``framework_version`` or ``py_version`` are ``None``, then
     #'              ``image_uri`` is required. If also ``None``, then a ``ValueError``
     #'              will be raised.
+    #' @param distribution (list): A dictionary with information on how to run distributed training
+    #'              (default: None).  Currently, the following are supported:
+    #'              distributed training with parameter servers, SageMaker Distributed (SMD) Data
+    #'              and Model Parallelism, and MPI. SMD Model Parallelism can only be used with MPI.
+    #'              To enable parameter server use the following setup:
     #' @param ... : Additional kwargs passed to the :class:`~sagemaker.estimator.Framework`
     #'              constructor.
     initialize = function(entry_point,
@@ -70,6 +77,7 @@ PyTorch = R6Class("PyTorch",
                           source_dir=NULL,
                           hyperparameters=NULL,
                           image_uri=NULL,
+                          distribution = NULL,
                           ...){
       kwargs = list(...)
 
@@ -77,6 +85,25 @@ PyTorch = R6Class("PyTorch",
 
       self$framework_version = framework_version
       self$py_version = py_version
+
+      if (!is.null(distribution)){
+        instance_type = renamed_kwargs(
+          "train_instance_type", "instance_type", kwargs[["instance_type"]], kwargs
+        )
+        validate_smdistributed(
+          instance_type=instance_type,
+          framework_name="pytorch",
+          framework_version=framework_version,
+          py_version=py_version,
+          distribution=distribution,
+          image_uri=image_uri
+        )
+
+        warn_if_parameter_server_with_multi_gpu(
+          training_instance_type=instance_type, distribution=distribution
+        )
+      }
+
 
       if (islistempty(kwargs$enable_sagemaker_metrics)){
         # enable sagemaker metrics for PT v1.3 or greater:
@@ -99,6 +126,16 @@ PyTorch = R6Class("PyTorch",
         LOGGER$warn(
           python_deprecation_warning(attr(self, "_framework_name"), PYTORCH_LATEST_PY2_VERSION)
         )
+    },
+
+    #' @description Return hyperparameters used by your custom PyTorch code during model training.
+    hyperparameters = function(){
+      hyperparameters = super$hyperparameters()
+      additional_hyperparameters = private$.distribution_configuration(
+        distribution=self$distribution
+      )
+      hyperparameters = modifyList(hyperparameters, private$.json_encode_hyperparameters(additional_hyperparameters))
+      return(hyperparameters)
     },
 
     #' @description Create a SageMaker ``PyTorchModel`` object that can be deployed to an
@@ -140,10 +177,10 @@ PyTorch = R6Class("PyTorch",
         kwargs$image_uri = self$image_uri
       kwargs$name = private$.get_or_create_name(kwargs$name)
 
-      kwargs = c(list(
+      kwargs = c(
         model_data=self$model_data,
-        role=role %||% self$role,
-        entry_point=entry_point %||% private$.model_entry_point(),
+        role=(role %||% self$role),
+        entry_point=(entry_point %||% private$.model_entry_point()),
         framework_version=self$framework_version,
         py_version=self$py_version,
         source_dir=(source_dir %||% private$.model_source_dir()),
@@ -152,9 +189,9 @@ PyTorch = R6Class("PyTorch",
         model_server_workers=model_server_workers,
         sagemaker_session=self$sagemaker_session,
         vpc_config=self$get_vpc_config(vpc_config_override),
-        dependencies=(dependencies %||% self$dependencies)),
-        kwargs)
-
+        dependencies=(dependencies %||% self$dependencies),
+        kwargs
+      )
       return (do.call(PyTorchModel$new, kwargs))
     }
   ),

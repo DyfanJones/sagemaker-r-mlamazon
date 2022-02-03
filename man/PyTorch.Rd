@@ -7,12 +7,13 @@
 Handle end-to-end training and deployment of custom PyTorch code.
 }
 \section{Super classes}{
-\code{\link[sagemaker.common:EstimatorBase]{sagemaker.common::EstimatorBase}} -> \code{\link[sagemaker.common:Framework]{sagemaker.common::Framework}} -> \code{PyTorch}
+\code{\link[sagemaker.mlcore:EstimatorBase]{sagemaker.mlcore::EstimatorBase}} -> \code{\link[sagemaker.mlcore:Framework]{sagemaker.mlcore::Framework}} -> \code{PyTorch}
 }
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{PyTorch$new()}}
+\item \href{#method-hyperparameters}{\code{PyTorch$hyperparameters()}}
 \item \href{#method-create_model}{\code{PyTorch$create_model()}}
 \item \href{#method-clone}{\code{PyTorch$clone()}}
 }
@@ -20,31 +21,30 @@ Handle end-to-end training and deployment of custom PyTorch code.
 \if{html}{
 \out{<details ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="compile_model">}\href{../../sagemaker.common/html/EstimatorBase.html#method-compile_model}{\code{sagemaker.common::EstimatorBase$compile_model()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="delete_endpoint">}\href{../../sagemaker.common/html/EstimatorBase.html#method-delete_endpoint}{\code{sagemaker.common::EstimatorBase$delete_endpoint()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="deploy">}\href{../../sagemaker.common/html/EstimatorBase.html#method-deploy}{\code{sagemaker.common::EstimatorBase$deploy()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="describe">}\href{../../sagemaker.common/html/EstimatorBase.html#method-describe}{\code{sagemaker.common::EstimatorBase$describe()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="disable_profiling">}\href{../../sagemaker.common/html/EstimatorBase.html#method-disable_profiling}{\code{sagemaker.common::EstimatorBase$disable_profiling()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="enable_default_profiling">}\href{../../sagemaker.common/html/EstimatorBase.html#method-enable_default_profiling}{\code{sagemaker.common::EstimatorBase$enable_default_profiling()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="enable_network_isolation">}\href{../../sagemaker.common/html/EstimatorBase.html#method-enable_network_isolation}{\code{sagemaker.common::EstimatorBase$enable_network_isolation()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="fit">}\href{../../sagemaker.common/html/EstimatorBase.html#method-fit}{\code{sagemaker.common::EstimatorBase$fit()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="format">}\href{../../sagemaker.common/html/EstimatorBase.html#method-format}{\code{sagemaker.common::EstimatorBase$format()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="get_vpc_config">}\href{../../sagemaker.common/html/EstimatorBase.html#method-get_vpc_config}{\code{sagemaker.common::EstimatorBase$get_vpc_config()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="help">}\href{../../sagemaker.common/html/EstimatorBase.html#method-help}{\code{sagemaker.common::EstimatorBase$help()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="latest_job_debugger_artifacts_path">}\href{../../sagemaker.common/html/EstimatorBase.html#method-latest_job_debugger_artifacts_path}{\code{sagemaker.common::EstimatorBase$latest_job_debugger_artifacts_path()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="latest_job_profiler_artifacts_path">}\href{../../sagemaker.common/html/EstimatorBase.html#method-latest_job_profiler_artifacts_path}{\code{sagemaker.common::EstimatorBase$latest_job_profiler_artifacts_path()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="latest_job_tensorboard_artifacts_path">}\href{../../sagemaker.common/html/EstimatorBase.html#method-latest_job_tensorboard_artifacts_path}{\code{sagemaker.common::EstimatorBase$latest_job_tensorboard_artifacts_path()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="logs">}\href{../../sagemaker.common/html/EstimatorBase.html#method-logs}{\code{sagemaker.common::EstimatorBase$logs()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="prepare_workflow_for_training">}\href{../../sagemaker.common/html/EstimatorBase.html#method-prepare_workflow_for_training}{\code{sagemaker.common::EstimatorBase$prepare_workflow_for_training()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="register">}\href{../../sagemaker.common/html/EstimatorBase.html#method-register}{\code{sagemaker.common::EstimatorBase$register()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="rule_job_summary">}\href{../../sagemaker.common/html/EstimatorBase.html#method-rule_job_summary}{\code{sagemaker.common::EstimatorBase$rule_job_summary()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="update_profiler">}\href{../../sagemaker.common/html/EstimatorBase.html#method-update_profiler}{\code{sagemaker.common::EstimatorBase$update_profiler()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="EstimatorBase" data-id="wait">}\href{../../sagemaker.common/html/EstimatorBase.html#method-wait}{\code{sagemaker.common::EstimatorBase$wait()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Framework" data-id=".prepare_for_training">}\href{../../sagemaker.common/html/Framework.html#method-.prepare_for_training}{\code{sagemaker.common::Framework$.prepare_for_training()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Framework" data-id="attach">}\href{../../sagemaker.common/html/Framework.html#method-attach}{\code{sagemaker.common::Framework$attach()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Framework" data-id="hyperparameters">}\href{../../sagemaker.common/html/Framework.html#method-hyperparameters}{\code{sagemaker.common::Framework$hyperparameters()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Framework" data-id="training_image_uri">}\href{../../sagemaker.common/html/Framework.html#method-training_image_uri}{\code{sagemaker.common::Framework$training_image_uri()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="sagemaker.common" data-topic="Framework" data-id="transformer">}\href{../../sagemaker.common/html/Framework.html#method-transformer}{\code{sagemaker.common::Framework$transformer()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="compile_model">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-compile_model}{\code{sagemaker.mlcore::EstimatorBase$compile_model()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="delete_endpoint">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-delete_endpoint}{\code{sagemaker.mlcore::EstimatorBase$delete_endpoint()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="deploy">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-deploy}{\code{sagemaker.mlcore::EstimatorBase$deploy()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="describe">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-describe}{\code{sagemaker.mlcore::EstimatorBase$describe()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="disable_profiling">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-disable_profiling}{\code{sagemaker.mlcore::EstimatorBase$disable_profiling()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="enable_default_profiling">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-enable_default_profiling}{\code{sagemaker.mlcore::EstimatorBase$enable_default_profiling()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="enable_network_isolation">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-enable_network_isolation}{\code{sagemaker.mlcore::EstimatorBase$enable_network_isolation()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="fit">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-fit}{\code{sagemaker.mlcore::EstimatorBase$fit()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="format">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-format}{\code{sagemaker.mlcore::EstimatorBase$format()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="get_vpc_config">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-get_vpc_config}{\code{sagemaker.mlcore::EstimatorBase$get_vpc_config()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="help">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-help}{\code{sagemaker.mlcore::EstimatorBase$help()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="latest_job_debugger_artifacts_path">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-latest_job_debugger_artifacts_path}{\code{sagemaker.mlcore::EstimatorBase$latest_job_debugger_artifacts_path()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="latest_job_profiler_artifacts_path">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-latest_job_profiler_artifacts_path}{\code{sagemaker.mlcore::EstimatorBase$latest_job_profiler_artifacts_path()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="latest_job_tensorboard_artifacts_path">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-latest_job_tensorboard_artifacts_path}{\code{sagemaker.mlcore::EstimatorBase$latest_job_tensorboard_artifacts_path()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="logs">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-logs}{\code{sagemaker.mlcore::EstimatorBase$logs()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="prepare_workflow_for_training">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-prepare_workflow_for_training}{\code{sagemaker.mlcore::EstimatorBase$prepare_workflow_for_training()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="register">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-register}{\code{sagemaker.mlcore::EstimatorBase$register()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="rule_job_summary">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-rule_job_summary}{\code{sagemaker.mlcore::EstimatorBase$rule_job_summary()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="update_profiler">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-update_profiler}{\code{sagemaker.mlcore::EstimatorBase$update_profiler()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="EstimatorBase" data-id="wait">}\href{../../sagemaker.mlcore/html/EstimatorBase.html#method-wait}{\code{sagemaker.mlcore::EstimatorBase$wait()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Framework" data-id=".prepare_for_training">}\href{../../sagemaker.mlcore/html/Framework.html#method-.prepare_for_training}{\code{sagemaker.mlcore::Framework$.prepare_for_training()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Framework" data-id="attach">}\href{../../sagemaker.mlcore/html/Framework.html#method-attach}{\code{sagemaker.mlcore::Framework$attach()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Framework" data-id="training_image_uri">}\href{../../sagemaker.mlcore/html/Framework.html#method-training_image_uri}{\code{sagemaker.mlcore::Framework$training_image_uri()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="sagemaker.mlcore" data-topic="Framework" data-id="transformer">}\href{../../sagemaker.mlcore/html/Framework.html#method-transformer}{\code{sagemaker.mlcore::Framework$transformer()}}\out{</span>}
 }
 \out{</details>}
 }
@@ -74,6 +74,7 @@ This ``Estimator`` executes an PyTorch script in a managed PyTorch
   source_dir = NULL,
   hyperparameters = NULL,
   image_uri = NULL,
+  distribution = NULL,
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -119,11 +120,27 @@ If ``framework_version`` or ``py_version`` are ``None``, then
 ``image_uri`` is required. If also ``None``, then a ``ValueError``
 will be raised.}
 
+\item{\code{distribution}}{(list): A dictionary with information on how to run distributed training
+(default: None).  Currently, the following are supported:
+distributed training with parameter servers, SageMaker Distributed (SMD) Data
+and Model Parallelism, and MPI. SMD Model Parallelism can only be used with MPI.
+To enable parameter server use the following setup:}
+
 \item{\code{...}}{: Additional kwargs passed to the :class:`~sagemaker.estimator.Framework`
 constructor.}
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-hyperparameters"></a>}}
+\if{latex}{\out{\hypertarget{method-hyperparameters}{}}}
+\subsection{Method \code{hyperparameters()}}{
+Return hyperparameters used by your custom PyTorch code during model training.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PyTorch$hyperparameters()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-create_model"></a>}}

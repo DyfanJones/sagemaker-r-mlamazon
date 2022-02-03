@@ -11,8 +11,8 @@ Imports:
     jsonlite,
     methods,
     processx,
-    paws,
     R6,
+    sagemaker.core,
     sagemaker.common,
     sagemaker.mlcore,
     urltools
@@ -20,6 +20,7 @@ Suggests:
     crayon,
     testthat
 Remotes:
+    DyfanJones/sagemaker-r-core,
     DyfanJones/sagemaker-r-common,
     DyfanJones/sagemaker-r-mlcore
 License: Apache License (>= 2.0)
@@ -54,6 +55,7 @@ Collate:
     'sparkml_model.R'
     'tensorflow_processing.R'
     'xgboost_default.R'
+    'xgboost_utils.R'
     'xgboost_model.R'
     'xgboost_estimator.R'
     'xgboost_processing.R'

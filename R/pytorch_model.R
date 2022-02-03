@@ -25,10 +25,20 @@ PyTorchPredictor = R6Class("PyTorchPredictor",
     #'              manages interactions with Amazon SageMaker APIs and any other
     #'              AWS services needed. If not specified, the estimator creates one
     #'              using the default AWS configuration chain.
+    #' @param serializer (sagemaker.serializers.BaseSerializer): Optional. Default
+    #'              serializes input data to .npy format. Handles lists and numpy
+    #'              arrays.
+    #' @param deserializer (sagemaker.deserializers.BaseDeserializer): Optional.
+    #'              Default parses the response from .npy format to numpy array.
     initialize = function(endpoint_name,
-                          sagemaker_session=NULL){
+                          sagemaker_session=NULL,
+                          serializer=NumpySerializer$new(),
+                          deserializer=NumpyDeserializer$new()){
       super$initialize(
-        endpoint_name, sagemaker_session, NumpySerializer$new(), NumpyDeserializer$new()
+        endpoint_name,
+        sagemaker_session,
+        serializer=serializer,
+        deserializer=deserializer
       )
     }
   ),
@@ -40,7 +50,7 @@ PyTorchPredictor = R6Class("PyTorchPredictor",
 #'              ``Endpoint``.
 #' @export
 PyTorchModel = R6Class("PyTorchModel",
-  inherit = sagemaker.common::FrameworkModel,
+  inherit = sagemaker.mlcore::FrameworkModel,
   public = list(
 
     #' @field .LOWEST_MMS_VERSION
@@ -106,6 +116,70 @@ PyTorchModel = R6Class("PyTorchModel",
       self$model_server_workers = model_server_workers
     },
 
+    #' @description Creates a model package for creating SageMaker models or listing on Marketplace.
+    #' @param content_types (list): The supported MIME types for the input data.
+    #' @param response_types (list): The supported MIME types for the output data.
+    #' @param inference_instances (list): A list of the instance types that are used to
+    #'              generate inferences in real-time.
+    #' @param transform_instances (list): A list of the instance types on which a transformation
+    #'              job can be run or on which an endpoint can be deployed.
+    #' @param model_package_name (str): Model Package name, exclusive to `model_package_group_name`,
+    #'              using `model_package_name` makes the Model Package un-versioned (default: None).
+    #' @param model_package_group_name (str): Model Package Group name, exclusive to
+    #'              `model_package_name`, using `model_package_group_name` makes the Model Package
+    #'              versioned (default: None).
+    #' @param image_uri (str): Inference image uri for the container. Model class' self.image will
+    #'              be used if it is None (default: None).
+    #' @param model_metrics (ModelMetrics): ModelMetrics object (default: None).
+    #' @param metadata_properties (MetadataProperties): MetadataProperties object (default: None).
+    #' @param marketplace_cert (bool): A boolean value indicating if the Model Package is certified
+    #'              for AWS Marketplace (default: False).
+    #' @param approval_status (str): Model Approval Status, values can be "Approved", "Rejected",
+    #'              or "PendingManualApproval" (default: "PendingManualApproval").
+    #' @param description (str): Model Package description (default: None).
+    #' @param drift_check_baselines (DriftCheckBaselines): DriftCheckBaselines object (default: None).
+    #' @return A `sagemaker.model.ModelPackage` instance.
+    register = function(content_types,
+                        response_types,
+                        inference_instances,
+                        transform_instances,
+                        model_package_name=NULL,
+                        model_package_group_name=NULL,
+                        image_uri=NULL,
+                        model_metrics=NULL,
+                        metadata_properties=NULL,
+                        marketplace_cert=FALSE,
+                        approval_status=NULL,
+                        description=NULL,
+                        drift_check_baselines=NULL){
+      instance_type = inference_instances[[1]]
+      private$.init_sagemaker_session_if_does_not_exist(instance_type)
+
+      if (!is.null(image_uri))
+        self$image_uri = image_uri
+      if (is.null(self$image_uri))
+        self$image_uri = self$serving_image_uri(
+          region_name=self$sagemaker_session$paws_session$region_name,
+          instance_type=instance_type
+        )
+      return(super$register(
+        content_types,
+        response_types,
+        inference_instances,
+        transform_instances,
+        model_package_name,
+        model_package_group_name,
+        image_uri,
+        model_metrics,
+        metadata_properties,
+        marketplace_cert,
+        approval_status,
+        description,
+        drift_check_baselines=drift_check_baselines
+        )
+      )
+    },
+
     #' @description Return a container definition with framework configuration set in
     #'              model environment variables.
     #' @param instance_type (str): The EC2 instance type to deploy this Model to.
@@ -131,8 +205,8 @@ PyTorchModel = R6Class("PyTorchModel",
 
       deploy_key_prefix = model_code_key_prefix(self$key_prefix, self$name, deploy_image)
       private$.upload_code(deploy_key_prefix, repack=private$.is_mms_version())
-      deploy_env = self$env
-      deploy_env = c(deploy_env, private$.framework_env_vars())
+      deploy_env = list(self$env)
+      deploy_env = modifyList(deploy_env, private$.framework_env_vars())
 
       if (!islistempty(self$model_server_workers))
         deploy_env[[toupper(model_parameters$MODEL_SERVER_WORKERS_PARAM_NAME)]] = as.character(self$model_server_workers)
@@ -152,7 +226,7 @@ PyTorchModel = R6Class("PyTorchModel",
     serving_image_uri = function(region_name,
                                  instance_type,
                                  accelerator_type=NULL){
-      return (ImageUris$new()$retrieve(
+      return(sagemaker.mlcore::ImageUris$new()$retrieve(
         attr(self, "_framework_name"),
         region_name,
         version=self$framework_version,

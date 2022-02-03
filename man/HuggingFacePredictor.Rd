@@ -42,7 +42,7 @@ Initialize an ``HuggingFacePredictor``.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HuggingFacePredictor$new(
   endpoint_name,
-  sagemaker_session = None,
+  sagemaker_session = NULL,
   serializer = JSONSerializer$new(),
   deserializer = JSONDeserializer$new()
 )}\if{html}{\out{</div>}}
