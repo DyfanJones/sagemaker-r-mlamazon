@@ -49,4 +49,10 @@ jobs:
           pak::pkg_install("rcmdcheck")
         shell: Rscript {0}
 
+      - name: Install Miniconda
+        run: |
+          reticulate::install_miniconda()
+          reticulate::py_install(packages="numpy", envname = 'r-reticulate', method = "conda")
+        shell: Rscript {0}
+
       - uses: r-lib/actions/check-r-package@v1
