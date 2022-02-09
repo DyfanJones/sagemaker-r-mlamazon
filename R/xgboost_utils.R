@@ -14,6 +14,6 @@ validate_framework_version = function(framework_version){
   xgboost_version = split_str(framework_version, "-")[1]
   if (xgboost_version %in% XGBOOST_UNSUPPORTED_VERSIONS){
     msg = XGBOOST_UNSUPPORTED_VERSIONS[[xgboost_version]]
-    ValueError(msg)
+    ValueError$new(msg)
   }
 }
