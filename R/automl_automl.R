@@ -371,6 +371,7 @@ AutoML = R6Class("AutoML",
         serializer=serializer,
         deserializer=deserializer,
         endpoint_name=endpoint_name,
+        kms_key=model_kms_key,
         tags=tags,
         wait=wait)
       )
@@ -431,10 +432,9 @@ AutoML = R6Class("AutoML",
                                                      job_objective){
       if (!(islistempty(problem_type) && islistempty(job_objective)) &&
           (islistempty(problem_type) || islistempty(job_objective)))
-        stop(
+        ValueError$new(
           "One of problem type and objective metric provided. ",
-          "Either both of them should be provided or none of them should be provided.",
-          call. = F
+          "Either both of them should be provided or none of them should be provided."
         )
     },
 
@@ -470,10 +470,11 @@ AutoML = R6Class("AutoML",
   .get_supported_inference_keys = function(container,
                                            default=NULL){
     tryCatch({
-      return(trimws(split_str(container$Environment$SAGEMAKER_INFERENCE_SUPPORTED, ",")))},
+      return(trimws(split_str(container$Environment$SAGEMAKER_INFERENCE_SUPPORTED, ",")))
+      },
       error= function(e){
         if (is.null(default))
-          stop()
+          SagemakerError$new()
     })
     return(default)
   },
@@ -494,10 +495,11 @@ AutoML = R6Class("AutoML",
     tryCatch({
       supported_inference_keys = private$.get_supported_inference_keys(container=containers[[length(containers)]])},
       error = function(e) {
-        stop(
+        ValueError$new(
           "The inference model does not support selection of inference content beyond ",
           "it's default content. Please retry without setting ",
-          "inference_response_keys key word argument.", call. = F)
+          "inference_response_keys key word argument."
+        )
       }
     )
 
@@ -507,10 +509,9 @@ AutoML = R6Class("AutoML",
         bad_keys = c(bad_keys, key)}
 
     if (!islistempty(bad_keys))
-      stop(
+      ValueError$new(
         "Requested inference output keys [", paste(bad_keys, collapse = ", "), "] are unsupported. ",
-        "The supported inference keys are [", paste(supported_inference_keys, collapse = ", "), "]",
-        call. = F
+        "The supported inference keys are [", paste(supported_inference_keys, collapse = ", "), "]"
       )
     }
   ),
@@ -720,12 +721,12 @@ AutoMLJob = R6Class("AutoMLJob",
         }
       } else {
         msg = "Cannot format input %s. Expecting a string or a list of strings."
-        stop(sprintf(msg,inputs), call. = F)
+        ValueError$new(sprintf(msg,inputs))
       }
 
       for (channel in channels){
         if (islistempty(channel$TargetAttributeName))
-          stop("TargetAttributeName cannot be NULL", call. = F)
+          ValueError$new("TargetAttributeName cannot be NULL")
       }
       return(channels)
     },
