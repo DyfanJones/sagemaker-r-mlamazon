@@ -9,6 +9,7 @@
 #' @import sagemaker.common
 #' @import sagemaker.mlcore
 #' @import lgr
+#' @importFrom stats setNames
 
 SAGEMAKER_ESTIMATOR <- "sagemaker_estimator"
 SAGEMAKER_ESTIMATOR_VALUE <- "RLEstimator"
@@ -28,7 +29,8 @@ TOOLKIT_FRAMEWORK_VERSION_MAP <- list(
     "0.6.5"=list("tensorflow"="1.12"),
     "0.6"=list("tensorflow"="1.12"),
     "0.8.2"=list("tensorflow"="2.1"),
-    "0.8.5"=list("tensorflow"="2.1", "pytorch"="1.5")
+    "0.8.5"=list("tensorflow"="2.1", "pytorch"="1.5"),
+    "1.6.0"=list("tensorflow"="2.5.0", "pytorch"="1.8.1")
   )
 )
 
@@ -68,7 +70,7 @@ RLEstimator = R6Class("RLEstimator",
 
     #' @field RAY_LATEST_VERSION
     #' latest version of toolkit ray
-    RAY_LATEST_VERSION = "0.8.5",
+    RAY_LATEST_VERSION = "1.6.0",
 
     #' @description Creates an RLEstimator for managed Reinforcement Learning (RL).
     #'              It will execute an RLEstimator script within a SageMaker Training Job. The managed RL
@@ -263,11 +265,12 @@ RLEstimator = R6Class("RLEstimator",
     hyperparameters = function(){
       hyperparameters = super$hyperparameters()
 
-      additional_hyperparameters = list(
+      additional_hyperparameters = setNames(list(
         self$output_path,
         # TODO: can be applied to all other estimators
-        SAGEMAKER_ESTIMATOR_VALUE)
-      names(additional_hyperparameters) <- c(model_parameters$SAGEMAKER_OUTPUT_LOCATION , SAGEMAKER_ESTIMATOR)
+        SAGEMAKER_ESTIMATOR_VALUE),
+        c(model_parameters$SAGEMAKER_OUTPUT_LOCATION, SAGEMAKER_ESTIMATOR)
+      )
 
       hyperparameters = modifyList(hyperparameters, private$.json_encode_hyperparameters(additional_hyperparameters))
       return(hyperparameters)

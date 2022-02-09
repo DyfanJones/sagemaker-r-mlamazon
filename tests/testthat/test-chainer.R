@@ -1,5 +1,12 @@
-# NOTE: This code has been modified from AWS Sagemaker Python: https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/test_chainer.py
+# NOTE: This code has been modified from AWS Sagemaker Python:
+# https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/test_chainer.py
 context("chainer")
+
+library(sagemaker.core)
+library(sagemaker.common)
+library(sagemaker.mlcore)
+
+setwd("~/Documents/Packages/sagemaker-r-mlframework/tests/testthat")
 
 DATA_DIR = file.path(getwd(), "data")
 SCRIPT_PATH = file.path(DATA_DIR, "dummy_script.py")
@@ -28,28 +35,40 @@ ENDPOINT_CONFIG_DESC = list("ProductionVariants"= list(list("ModelName"= "model-
 
 LIST_TAGS_RESULT = list("Tags"= list(list("Key"= "TagtestKey", "Value"= "TagtestValue")))
 
-paws_mock = Mock$new(name = "PawsCredentials", region_name = REGION)
-sagemaker_session = Mock$new(
-  name="Session",
-  paws_credentials=paws_mock,
-  paws_region_name=REGION,
-  config=NULL,
-  local_mode=FALSE,
-  s3 = NULL
-)
+sagemaker_session <- function(){
+  paws_mock <- Mock$new(name = "PawsCredentials", region_name = REGION)
+  sms <- Mock$new(
+    name = "Session",
+    paws_credentials = paws_mock,
+    paws_region_name=REGION,
+    config=NULL,
+    local_mode=FALSE,
+    s3 = NULL
+  )
 
-describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
-sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(describe)
-sagemaker_session$sagemaker$describe_endpoint = Mock$new()$return_value(ENDPOINT_DESC)
-sagemaker_session$sagemaker$describe_endpoint_config = Mock$new()$return_value(ENDPOINT_CONFIG_DESC)
-sagemaker_session$sagemaker$list_tags = Mock$new()$return_value(LIST_TAGS_RESULT)
-sagemaker_session$default_bucket = Mock$new(name="default_bucket")$return_value(BUCKET_NAME, .min_var = 0)
-sagemaker_session$expand_role = Mock$new(name="expand_role")$return_value(ROLE)
-sagemaker_session$wait_for_job = Mock$new()$return_value(NULL)
-sagemaker_session$train <- Mock$new()$return_value(list(TrainingJobArn = "sagemaker-chainer-dummy"))
-sagemaker_session$logs_for_job <- Mock$new()$return_value(NULL)
-sagemaker_session$create_model <- Mock$new()$return_value("sagemaker-chainer")
-sagemaker_session$endpoint_from_production_variants <- Mock$new()$return_value("sagemaker-chainer-endpoint")
+  s3_client <- Mock$new()
+  s3_client$.call_args("put_object")
+
+  sagemaker_client <- Mock$new()
+  describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
+  sagemaker_client$.call_args("describe_training_job", describe)
+  sagemaker_client$.call_args("describe_endpoint", ENDPOINT_DESC)
+  sagemaker_client$.call_args("describe_endpoint_config", ENDPOINT_CONFIG_DESC)
+  sagemaker_client$.call_args("list_tags", LIST_TAGS_RESULT)
+
+  sms$.call_args("default_bucket", BUCKET_NAME)
+  sms$.call_args("expand_role", ROLE)
+  sms$.call_args("train", list(TrainingJobArn = "sagemaker-chainer-dummy"))
+  sms$.call_args("create_model", "sagemaker-chainer")
+  sms$.call_args("endpoint_from_production_variants", "sagemaker-chainer-endpoint")
+  sms$.call_args("logs_for_job")
+  sms$.call_args("wait_for_job")
+
+  sms$s3 <- s3_client
+  sms$sagemaker <- sagemaker_client
+
+  return(sms)
+}
 
 create_train_job=list(
     "image_uri"= sprintf(IMAGE_URI_FORMAT_STRING, REGION, IMAGE_URI, chainer_version, "cpu", chainer_py_version),
@@ -89,13 +108,13 @@ create_train_job=list(
       "CollectionConfigurations"= list(),
       "S3OutputPath"= sprintf("s3://%s/",BUCKET_NAME)
     )
-  )
+)
 
 test_that("test additional hyperparameters", {
   chainer_args = list(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     instance_count=INSTANCE_COUNT,
     instance_type= INSTANCE_TYPE,
     base_job_name=NULL,
@@ -109,9 +128,9 @@ test_that("test additional hyperparameters", {
   chainer = do.call(Chainer$new, chainer_args)
   hp = chainer$hyperparameters()
 
-  expect_true(is.logical(hp$sagemaker_use_mpi))
-  expect_equal(hp$sagemaker_num_processes, 4)
-  expect_equal(hp$sagemaker_process_slots_per_host, 10)
+  expect_true(as.logical(hp$sagemaker_use_mpi))
+  expect_equal(hp$sagemaker_num_processes, "4")
+  expect_equal(hp$sagemaker_process_slots_per_host, "10")
   expect_equal(hp$sagemaker_additional_mpi_options,"-x MY_ENVIRONMENT_VARIABLE")
 })
 
@@ -147,8 +166,8 @@ test_that("test attach with additional hyperparameters", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3=//here/output.tar.gz")
   )
 
-  sm = sagemaker_session$clone(deep = T)
-  sm$sagemaker$describe_training_job = Mock$new()$return_value(returned_job_description)
+  sm = sagemaker_session()
+  sm$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   chainer_args = list(
     entry_point = SCRIPT_PATH,
@@ -161,9 +180,9 @@ test_that("test attach with additional hyperparameters", {
 
   estimator = chainer$attach(training_job_name="neo", sagemaker_session=sm)
   hp = estimator$hyperparameters()
-  expect_true(is.logical(hp$sagemaker_use_mpi))
-  expect_equal(hp$sagemaker_num_processes, 4)
-  expect_equal(hp$sagemaker_process_slots_per_host, 10)
+  expect_true(as.logical(hp$sagemaker_use_mpi))
+  expect_equal(hp$sagemaker_num_processes, "4")
+  expect_equal(hp$sagemaker_process_slots_per_host, "10")
   expect_equal(hp$sagemaker_additional_mpi_options,"-x MY_ENVIRONMENT_VARIABLE")
 
   expect_true(estimator$use_mpi)
@@ -177,10 +196,11 @@ test_that("test create model", {
   source_dir = "s3://mybucket/source"
   base_job_name = "job"
 
+  sms = sagemaker_session()
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     framework_version=chainer_version,
@@ -195,7 +215,7 @@ test_that("test create model", {
   chainer$model_data
   model = chainer$create_model()
 
-  expect_equal(model$sagemaker_session, sagemaker_session)
+  expect_equal(model$sagemaker_session, sms)
   expect_equal(model$framework_version, chainer_version)
   expect_equal(model$py_version, chainer$py_version)
   expect_equal(model$role, ROLE)
@@ -210,7 +230,7 @@ test_that("test create model with optional params", {
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     container_log_level=container_log_level,
@@ -250,7 +270,7 @@ test_that("test create model with custom image", {
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     image_uri=custom_image,
@@ -265,12 +285,15 @@ test_that("test create model with custom image", {
   expect_equal(model$image_uri, custom_image)
 })
 
-
+################################################################################
+################################################################################
+################################################################################
+################################################################################
 test_that("test chainer", {
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     framework_version=chainer_version,
@@ -305,7 +328,7 @@ test_that("test model", {
     "s3://some/data.tar.gz",
     role=ROLE,
     entry_point=SCRIPT_PATH,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     framework_version=chainer_version,
     py_version=chainer_py_version
   )
@@ -319,7 +342,7 @@ test_that("test model prepare container def accelerator_error", {
     MODEL_DATA,
     role=ROLE,
     entry_point=SCRIPT_PATH,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     framework_version=chainer_version,
     py_version=chainer_py_version
   )
@@ -343,7 +366,7 @@ test_that("test training image default", {
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     framework_version=chainer_version,
@@ -384,19 +407,20 @@ test_that("test attach", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
     )
 
-  sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(returned_job_description)
+  sms = sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     framework_version=chainer_version,
     py_version=chainer_py_version
   )
 
-  estimator = chainer$attach(training_job_name="neo", sagemaker_session=sagemaker_session)
+  estimator = chainer$attach(training_job_name="neo", sagemaker_session=sms)
 
   expect_equal(estimator$latest_training_job, "neo")
   expect_equal(estimator$py_version, chainer_py_version)
@@ -441,19 +465,20 @@ test_that("test attach wrong framework", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
   )
 
-  sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(rjd)
+  sms = sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job", rjd)
 
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     framework_version=chainer_version,
     py_version=chainer_py_version
   )
 
-  expect_error(chainer$attach(training_job_name="neo", sagemaker_session=sagemaker_session),
+  expect_error(chainer$attach(training_job_name="neo", sagemaker_session=sms),
                "Training job: neo didn't use image for requested framework")
 })
 
@@ -484,19 +509,20 @@ test_that("test attach wrong framework", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
   )
 
-  sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(returned_job_description)
+  sms = sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job",returned_job_description)
 
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     framework_version=chainer_version,
     py_version=chainer_py_version
   )
 
-  estimator = chainer$attach(training_job_name="neo", sagemaker_session=sagemaker_session)
+  estimator = chainer$attach(training_job_name="neo", sagemaker_session=sms)
   expect_equal(estimator$image_uri, training_image)
   expect_equal(estimator$training_image_uri(), training_image)
 })
@@ -505,7 +531,7 @@ test_that("test estimator py2 warning", {
   estimator = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     framework_version=chainer_version,
@@ -519,7 +545,7 @@ test_that("test model py2 warning", {
     MODEL_DATA,
     role=ROLE,
     entry_point=SCRIPT_PATH,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sagemaker_session(),
     framework_version=chainer_version,
     py_version="py2"
   )

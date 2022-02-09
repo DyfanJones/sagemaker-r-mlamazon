@@ -15,10 +15,14 @@ Imports:
     sagemaker.core,
     sagemaker.common,
     sagemaker.mlcore,
-    urltools
+    urltools,
+    stats
 Suggests:
     crayon,
-    testthat
+    testthat,
+    mockthat,
+    reticulate,
+    sparsio
 Remotes:
     DyfanJones/sagemaker-r-core,
     DyfanJones/sagemaker-r-common,

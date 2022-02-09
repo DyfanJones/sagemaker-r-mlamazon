@@ -190,20 +190,23 @@ Chainer = R6Class("Chainer",
 
       vpc_config = self$get_vpc_config(vpc_config_override)
       model_data=self$model_data
-      kwargs = c(
-        model_data=model_data,
-        role=role %||% self$role,
-        entry_point=entry_point %||% private$.model_entry_point(),
-        source_dir=list(source_dir %||% private$.model_source_dir()),
-        container_log_level=self$container_log_level,
-        code_location=self$code_location,
-        py_version=self$py_version,
-        framework_version=self$framework_version,
-        model_server_workers=model_server_workers,
-        sagemaker_session=self$sagemaker_session,
-        vpc_config= if(inherits(vpc_config, "list")) list(vpc_config) else vpc_config,
-        dependencies=list(dependencies %||% self$dependencies),
-        kwargs)
+      kwargs = append(
+        list(
+          model_data=model_data,
+          role=role %||% self$role,
+          entry_point=entry_point %||% private$.model_entry_point(),
+          source_dir=(source_dir %||% private$.model_source_dir()),
+          container_log_level=self$container_log_level,
+          code_location=self$code_location,
+          py_version=self$py_version,
+          framework_version=self$framework_version,
+          model_server_workers=model_server_workers,
+          sagemaker_session=self$sagemaker_session,
+          vpc_config= self$get_vpc_config(vpc_config_override),
+          dependencies=(dependencies %||% self$dependencies)
+        ),
+        kwargs
+      )
      return(do.call(ChainerModel$new, kwargs))
     }
   ),

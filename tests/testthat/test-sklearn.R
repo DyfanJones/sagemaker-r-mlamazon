@@ -1,5 +1,10 @@
-# NOTE: This code has been modified from AWS Sagemaker Python: https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/test_sklearn.py
+# NOTE: This code has been modified from AWS Sagemaker Python:
+# https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/test_sklearn.py
 context("SKLearn")
+
+library(sagemaker.core)
+library(sagemaker.common)
+library(sagemaker.mlcore)
 
 DATA_DIR = file.path(getwd(), "data")
 SCRIPT_PATH =file.path(DATA_DIR, "dummy_script.py")
@@ -36,33 +41,45 @@ EXPERIMENT_CONFIG = list(
   "TrialComponentDisplayName"= "tc"
 )
 
-paws_mock = Mock$new(name = "PawsCredentials", region_name = REGION)
-sagemaker_session = Mock$new(
-  name="Session",
-  paws_credentials=paws_mock,
-  paws_region_name=REGION,
-  config=NULL,
-  local_mode=FALSE,
-  s3 = NULL
-)
+sagemaker_session <- function(){
+  paws_mock <- Mock$new(name = "PawsCredentials", region_name = REGION)
+  sms <- Mock$new(
+    name = "Session",
+    paws_credentials = paws_mock,
+    paws_region_name=REGION,
+    config=NULL,
+    local_mode=FALSE,
+    s3 = NULL
+  )
 
-describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
-describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
-sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(describe)
-sagemaker_session$sagemaker$describe_endpoint = Mock$new()$return_value(ENDPOINT_DESC)
-sagemaker_session$sagemaker$describe_endpoint_config = Mock$new()$return_value(ENDPOINT_CONFIG_DESC)
-sagemaker_session$sagemaker$list_tags = Mock$new()$return_value(LIST_TAGS_RESULT)
-sagemaker_session$wait_for_compilation_job = Mock$new()$return_value(describe_compilation)
-sagemaker_session$default_bucket = Mock$new(name="default_bucket")$return_value(BUCKET_NAME, .min_var = 0)
-sagemaker_session$expand_role = Mock$new(name="expand_role")$return_value(ROLE)
-sagemaker_session$wait_for_job = Mock$new()$return_value(NULL)
-sagemaker_session$train <- Mock$new()$return_value(list(TrainingJobArn = "sagemaker-chainer-dummy"))
-sagemaker_session$logs_for_job <- Mock$new()$return_value(NULL)
-sagemaker_session$create_model <- Mock$new()$return_value("sagemaker-chainer")
-sagemaker_session$endpoint_from_production_variants <- Mock$new()$return_value("sagemaker-chainer-endpoint")
-sagemaker_session$s3$put_object <- Mock$new()$return_value(NULL)
-sagemaker_session$s3$get_object <- Mock$new()$return_value(list(Body = BIN_OBJ))
-sagemaker_session$call_args("compile_model")
+  s3_client <- Mock$new()
+  s3_client$.call_args("put_object")
+  s3_client$.call_args("get_object", list(Body = BIN_OBJ))
+
+  sagemaker_client <- Mock$new()
+  describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
+  describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
+
+  sagemaker_client$.call_args("describe_training_job", describe)
+  sagemaker_client$.call_args("describe_endpoint", ENDPOINT_DESC)
+  sagemaker_client$.call_args("describe_endpoint_config", ENDPOINT_CONFIG_DESC)
+  sagemaker_client$.call_args("list_tags", LIST_TAGS_RESULT)
+
+  sms$.call_args("default_bucket", BUCKET_NAME)
+  sms$.call_args("expand_role", ROLE)
+  sms$.call_args("train", list(TrainingJobArn = "sagemaker-sklearn-dummy"))
+  sms$.call_args("create_model", "sagemaker-sklearn")
+  sms$.call_args("endpoint_from_production_variants", "sagemaker-sklearn-endpoint")
+  sms$.call_args("logs_for_job")
+  sms$.call_args("wait_for_job")
+  sms$.call_args("wait_for_compilation_job", describe_compilation)
+  sms$.call_args("compile_model")
+
+  sms$s3 <- s3_client
+  sms$sagemaker <- sagemaker_client
+
+  return(sms)
+}
 
 .get_full_cpu_image_uri <- function(version){
   return(sprintf(IMAGE_URI_FORMAT_STRING,REGION, IMAGE_URI, version, "cpu", PYTHON_VERSION))
@@ -116,11 +133,12 @@ sagemaker_session$call_args("compile_model")
 test_that("test training image uri", {
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
+  sms <- sagemaker_session()
 
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     framework_version=sklearn_version,
     container_log_level=container_log_level,
@@ -134,11 +152,12 @@ test_that("test training image uri", {
 
 test_that("test create model", {
   source_dir = "s3://mybucket/source"
+  sms <- sagemaker_session()
 
   sklearn_model = SKLearnModel$new(
     model_data=source_dir,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     entry_point=SCRIPT_PATH,
     framework_version=sklearn_version
   )
@@ -152,11 +171,12 @@ test_that("test create model", {
 test_that("test create model with network isolation", {
   source_dir = "s3://mybucket/source"
   repacked_model_data = "s3://mybucket/prefix/model.tar.gz"
+  sms <- sagemaker_session()
 
   sklearn_model = SKLearnModel$new(
     model_data=source_dir,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     entry_point=SCRIPT_PATH,
     enable_network_isolation=TRUE,
     framework_version=sklearn_version
@@ -172,11 +192,12 @@ test_that("test create model from estimator", {
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
   base_job_name = "job"
+  sms <- sagemaker_session()
 
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     framework_version=sklearn_version,
     container_log_level=container_log_level,
@@ -190,7 +211,7 @@ test_that("test create model from estimator", {
 
   model = sklearn$create_model()
 
-  expect_equal(model$sagemaker_session, sagemaker_session)
+  expect_equal(model$sagemaker_session, sms)
   expect_equal(model$framework_version, sklearn_version)
   expect_equal(model$py_version, sklearn$py_version)
   expect_equal(model$entry_point, basename(SCRIPT_PATH))
@@ -204,10 +225,12 @@ test_that("test create model from estimator", {
 test_that("test create model with optional params", {
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
+  sms <- sagemaker_session()
+
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     container_log_level=container_log_level,
     framework_version=sklearn_version,
@@ -250,10 +273,12 @@ test_that("test create model with custom image", {
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
   custom_image = "ubuntu:latest"
+  sms <- sagemaker_session()
+
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     image_uri=custom_image,
     container_log_level=container_log_level,
@@ -269,10 +294,11 @@ test_that("test create model with custom image", {
 })
 
 test_that("test sklearn", {
+  sms <- sagemaker_session()
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     py_version=PYTHON_VERSION,
     framework_version=sklearn_version
@@ -286,7 +312,7 @@ test_that("test sklearn", {
   expected_train_args$input_config[[1]]$DataSource$S3DataSource$S3Uri = inputs
   expected_train_args$experiment_config = EXPERIMENT_CONFIG
 
-  actual_train_args = sagemaker_session$train()$.call_args
+  actual_train_args = sms$train(..return_value = T)
 
   # check if keys are identical
   expect_equal(names(actual_train_args), names(expected_train_args))
@@ -339,10 +365,12 @@ test_that("test sklearn", {
 })
 
 test_that("test transform multiple values for entry point issue", {
+  sms <- sagemaker_session()
+
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     py_version=PYTHON_VERSION,
     framework_version=sklearn_version)
@@ -358,11 +386,12 @@ test_that("test transform multiple values for entry point issue", {
 })
 
 test_that("test fail distributed training", {
+  sms <- sagemaker_session()
   expect_error(
     SKLearn$new(
       entry_point=SCRIPT_PATH,
       role=ROLE,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sms,
       instance_count=2,
       instance_type=INSTANCE_TYPE,
       py_version=PYTHON_VERSION,
@@ -371,11 +400,12 @@ test_that("test fail distributed training", {
 })
 
 test_that("test fail gpu training", {
+  sms <- sagemaker_session()
   expect_error(
     SKLearn$new(
       entry_point=SCRIPT_PATH,
       role=ROLE,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sms,
       instance_type=GPU_INSTANCE_TYPE,
       py_version=PYTHON_VERSION,
       framework_version=sklearn_version)
@@ -383,12 +413,13 @@ test_that("test fail gpu training", {
 })
 
 test_that("test model", {
+  sms <- sagemaker_session()
   model = SKLearnModel$new(
     "s3://some/data.tar.gz",
     role=ROLE,
     entry_point=SCRIPT_PATH,
     framework_version=sklearn_version,
-    sagemaker_session=sagemaker_session)
+    sagemaker_session=sms)
 
   predictor = model$deploy(1, CPU)
 
@@ -421,19 +452,19 @@ test_that("test attach", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
   )
 
-  sm <- sagemaker_session$clone()
-  sm$sagemaker$describe_training_job <- Mock$new()$return_value(returned_job_description)
+  sms <- sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sm,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     framework_version=sklearn_version,
     py_version=PYTHON_VERSION)
 
-  estimator = sklearn$attach(training_job_name="describe_training_job", sagemaker_session=sm)
+  estimator = sklearn$attach(training_job_name="describe_training_job", sagemaker_session=sms)
 
   expect_equal(estimator$.current_job_name, "neo")
   expect_equal(estimator$latest_training_job, "neo")
@@ -476,8 +507,8 @@ test_that("test attach wrong framework", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
     )
 
-  sm <- sagemaker_session$clone()
-  sm$sagemaker$describe_training_job <- Mock$new()$return_value(rjd)
+  sm <- sagemaker_session()
+  sm$sagemaker$.call_args("describe_training_job", rjd)
 
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
@@ -516,8 +547,8 @@ test_that("test attach custom image", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
   )
 
-  sm <- sagemaker_session$clone()
-  sm$sagemaker$describe_training_job <- Mock$new()$return_value(returned_job_description)
+  sm <- sagemaker_session()
+  sm$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
@@ -539,7 +570,7 @@ test_that("test estimator py2 warning", {
     SKLearn$new(
       entry_point=SCRIPT_PATH,
       role=ROLE,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sagemaker_session(),
       instance_count=INSTANCE_COUNT,
       instance_type=INSTANCE_TYPE,
       framework_version=sklearn_version,
@@ -553,7 +584,7 @@ test_that("test model py2 warning", {
       model_data=source_dir,
       role=ROLE,
       entry_point=SCRIPT_PATH,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sagemaker_session(),
       framework_version=sklearn_version,
       py_version="py2")
   )

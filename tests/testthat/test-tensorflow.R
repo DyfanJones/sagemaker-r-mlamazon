@@ -1,5 +1,11 @@
-# NOTE: This code has been modified from AWS Sagemaker Python: https://github.com/aws/sagemaker-python-sdk/tree/master/tests/unit/sagemaker/tensorflow
+# NOTE: This code has been modified from AWS Sagemaker Python:
+# https://github.com/aws/sagemaker-python-sdk/tree/master/tests/unit/sagemaker/tensorflow
+
 context("tensorflow")
+
+library(sagemaker.core)
+library(sagemaker.common)
+library(sagemaker.mlcore)
 
 DATA_DIR = file.path(getwd(), "data")
 SCRIPT_FILE = "dummy_script.py"
@@ -58,33 +64,45 @@ EXPERIMENT_CONFIG = list(
   "TrialComponentDisplayName"= "tc"
 )
 
-paws_mock = Mock$new(name = "PawsCredentials", region_name = REGION)
-sagemaker_session = Mock$new(
-  name="Session",
-  paws_credentials=paws_mock,
-  paws_region_name=REGION,
-  config=NULL,
-  local_mode=FALSE,
-  s3 = NULL
-)
+sagemaker_session <- function(){
+  paws_mock <- Mock$new(name = "PawsCredentials", region_name = REGION)
+  sms <- Mock$new(
+    name = "Session",
+    paws_credentials = paws_mock,
+    paws_region_name=REGION,
+    config=NULL,
+    local_mode=FALSE,
+    s3 = NULL
+  )
 
-describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
-describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
-sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(describe)
-sagemaker_session$sagemaker$describe_endpoint = Mock$new()$return_value(ENDPOINT_DESC)
-sagemaker_session$sagemaker$describe_endpoint_config = Mock$new()$return_value(ENDPOINT_CONFIG_DESC)
-sagemaker_session$sagemaker$list_tags = Mock$new()$return_value(LIST_TAGS_RESULT)
-sagemaker_session$wait_for_compilation_job = Mock$new()$return_value(describe_compilation)
-sagemaker_session$default_bucket = Mock$new(name="default_bucket")$return_value(BUCKET_NAME, .min_var = 0)
-sagemaker_session$expand_role = Mock$new(name="expand_role")$return_value(ROLE)
-sagemaker_session$wait_for_job = Mock$new()$return_value(NULL)
-sagemaker_session$train <- Mock$new()$return_value(list(TrainingJobArn = "sagemaker-chainer-dummy"))
-sagemaker_session$logs_for_job <- Mock$new()$return_value(NULL)
-sagemaker_session$create_model <- Mock$new()$return_value("sagemaker-chainer")
-sagemaker_session$endpoint_from_production_variants <- Mock$new()$return_value("sagemaker-chainer-endpoint")
-sagemaker_session$s3$put_object <- Mock$new()$return_value(NULL)
-sagemaker_session$s3$get_object <- Mock$new()$return_value(list(Body = BIN_OBJ))
-sagemaker_session$call_args("compile_model")
+  s3_client <- Mock$new()
+  s3_client$.call_args("put_object")
+  s3_client$.call_args("get_object", list(Body = BIN_OBJ))
+
+  sagemaker_client <- Mock$new()
+  describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
+  describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
+
+  sagemaker_client$.call_args("describe_training_job", describe)
+  sagemaker_client$.call_args("describe_endpoint", ENDPOINT_DESC)
+  sagemaker_client$.call_args("describe_endpoint_config", ENDPOINT_CONFIG_DESC)
+  sagemaker_client$.call_args("list_tags", LIST_TAGS_RESULT)
+
+  sms$.call_args("default_bucket", BUCKET_NAME)
+  sms$.call_args("expand_role", ROLE)
+  sms$.call_args("train", list(TrainingJobArn = "sagemaker-tf-dummy"))
+  sms$.call_args("create_model", "sagemaker-tf")
+  sms$.call_args("endpoint_from_production_variants", "sagemaker-tf-endpoint")
+  sms$.call_args("logs_for_job")
+  sms$.call_args("wait_for_job")
+  sms$.call_args("wait_for_compilation_job", describe_compilation)
+  sms$.call_args("compile_model")
+
+  sms$s3 <- s3_client
+  sms$sagemaker <- sagemaker_client
+
+  return(sms)
+}
 
 .build_tf <- function(sagemaker_session, ...){
   return(TensorFlow$new(
@@ -167,30 +185,32 @@ sagemaker_session$call_args("compile_model")
 # ===== test estimator init ====
 
 test_that("test estimator py2 deprecation warning", {
-  estimator = .build_tf(sagemaker_session,framework_version="2.1.1", py_version="py2")
+  sms <- sagemaker_session()
+  estimator = .build_tf(sms,framework_version="2.1.1", py_version="py2")
   expect_equal(estimator$py_version, "py2")
 })
 
 test_that("test py2 version deprecated", {
+  sms <- sagemaker_session()
   expect_error(
-    .build_tf(sagemaker_session, framework_version="2.1.2", py_version="py2"))
+    .build_tf(sms, framework_version="2.1.2", py_version="py2"))
 })
 
 test_that("test py2 version is not deprecated", {
-  estimator = .build_tf(sagemaker_session, framework_version="1.15.0", py_version="py2")
+  estimator = .build_tf(sagemaker_session(), framework_version="1.15.0", py_version="py2")
   expect_equal(estimator$py_version, "py2")
-  estimator = .build_tf(sagemaker_session, framework_version="2.0.0", py_version="py2")
+  estimator = .build_tf(sagemaker_session(), framework_version="2.0.0", py_version="py2")
   expect_equal(estimator$py_version, "py2")
 })
 
 test_that("test framework name", {
-  tf = .build_tf(sagemaker_session, framework_version="1.15.2", py_version="py3")
+  tf = .build_tf(sagemaker_session(), framework_version="1.15.2", py_version="py3")
   expect_equal(attr(tf, "_framework_name"), "tensorflow")
 })
 
 test_that("test enable sm metrics", {
   tf = .build_tf(
-    sagemaker_session,
+    sagemaker_session(),
     framework_version="1.15.2",
     py_version="py3",
     enable_sagemaker_metrics=TRUE
@@ -200,7 +220,7 @@ test_that("test enable sm metrics", {
 
 test_that("test disable sm metrics", {
   tf = .build_tf(
-    sagemaker_session,
+    sagemaker_session(),
     framework_version="1.15.2",
     py_version="py3",
     enable_sagemaker_metrics=FALSE
@@ -210,7 +230,7 @@ test_that("test disable sm metrics", {
 
 test_that("test disable sm metrics if fw ver is less than 1.15", {
   tf = .build_tf(
-    sagemaker_session,
+    sagemaker_session(),
     framework_version="1.14",
     py_version="py3",
     image_uri="old-image",
@@ -221,7 +241,7 @@ test_that("test disable sm metrics if fw ver is less than 1.15", {
 test_that("test require image uri if fw ver is less than 1.11", {
   expect_error(
     .build_tf(
-      sagemaker_session,
+      sagemaker_session(),
       framework_version="1.10",
       py_version="py2"
     )
@@ -259,8 +279,8 @@ test_that("test attach", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
     )
 
-  sm <- sagemaker_session$clone()
-  sm$sagemaker$describe_training_job <- Mock$new()$return_value(rjd)
+  sm <- sagemaker_session()
+  sm$sagemaker$.call_args("describe_training_job", rjd)
 
   tf = TensorFlow$new(sagemaker_session,
                       framework_version="1.15",
@@ -311,8 +331,8 @@ test_that("test attach old container", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
   )
 
-  sm <- sagemaker_session$clone()
-  sm$sagemaker$describe_training_job <- Mock$new()$return_value(rjd)
+  sm <- sagemaker_session()
+  sm$sagemaker$.call_args("describe_training_job", rjd)
 
   tf = TensorFlow$new(sagemaker_session,
                       framework_version="1.15",
@@ -360,8 +380,8 @@ test_that("test attach wrong framework", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
   )
 
-  sm <- sagemaker_session$clone()
-  sm$sagemaker$describe_training_job <- Mock$new()$return_value(returned_job_description)
+  sm <- sagemaker_session()
+  sm$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   tf = TensorFlow$new(sagemaker_session,
                       framework_version="1.15",
@@ -397,10 +417,10 @@ test_that("test attach custom image", {
     "TrainingJobOutput"= list("S3TrainingJobOutput"= "s3://here/output.tar.gz")
   )
 
-  sm <- sagemaker_session$clone()
-  sm$sagemaker$describe_training_job <- Mock$new()$return_value(rjd)
+  sm <- sagemaker_session()
+  sm$sagemaker$.call_args("describe_training_job", rjd)
 
-  tf = TensorFlow$new(sagemaker_session,
+  tf = TensorFlow$new(sm,
                       framework_version="1.15",
                       py_version="py3",
                       entry_point="dummy.py",
@@ -415,9 +435,11 @@ test_that("test attach custom image", {
 
 # ===== test estimator ====
 
+############### check this part
 test_that("test create model", {
   container_log_level = 'INFO'
   base_job_name = "job"
+  sms <- sagemaker_session()
 
   tf = TensorFlow$new(
     entry_point=SCRIPT_PATH,
@@ -425,7 +447,7 @@ test_that("test create model", {
     framework_version=tensorflow_inference_version,
     py_version=tensorflow_inference_py_version,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     container_log_level=container_log_level,
@@ -436,7 +458,7 @@ test_that("test create model", {
   tf$.current_job_name = "doing something"
   model = tf$create_model()
 
-  expect_equal(model$sagemaker_session, sagemaker_session)
+  expect_equal(model$sagemaker_session, sms)
   expect_equal(model$framework_version, tensorflow_inference_version)
   expect_null(model$entry_point)
   expect_equal(model$role, ROLE)
@@ -449,13 +471,14 @@ test_that("test create model", {
 test_that("test create model_with optional params", {
   container_log_level = 'INFO'
   source_dir = "job"
+  sms <- sagemaker_session()
 
   tf = TensorFlow$new(
     entry_point=SCRIPT_PATH,
     framework_version=tensorflow_inference_version,
     py_version=tensorflow_inference_py_version,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     container_log_level=container_log_level,
@@ -486,10 +509,12 @@ test_that("test create model with custom image", {
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
   custom_image = "tensorflow:1.0"
+  sms <- sagemaker_session()
+
   tf = TensorFlow$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     image_uri=custom_image,
@@ -505,12 +530,13 @@ test_that("test create model with custom image", {
 })
 
 test_that("test fit", {
+  sms <- sagemaker_session()
   tf = TensorFlow$new(
     entry_point=SCRIPT_FILE,
     framework_version="1.11",
     py_version="py2",
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     instance_count=1,
     source_dir=DATA_DIR)
@@ -521,7 +547,7 @@ test_that("test fit", {
   expected_train_args = .create_train_job("1.11", py_version = "py2")
   expected_train_args$input_config[[1]]$DataSource$S3DataSource$S3Uri = inputs
 
-  actual_train_args = sagemaker_session$train()$.call_args
+  actual_train_args = sms$train(..return_value = T)
   actual_train_args$job_name = NULL
 
   # check if keys are identical
@@ -548,12 +574,13 @@ test_that("test fit", {
 })
 
 test_that("test fit ps", {
+  sms <- sagemaker_session()
   tf = TensorFlow$new(
     entry_point=SCRIPT_FILE,
     framework_version="1.11",
     py_version="py2",
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     instance_count=1,
     source_dir=DATA_DIR,
@@ -566,7 +593,7 @@ test_that("test fit ps", {
   expected_train_args$input_config[[1]]$DataSource$S3DataSource$S3Uri = inputs
   expected_train_args[["hyperparameters"]][[Framework$public_fields$LAUNCH_PS_ENV_NAME]] = TRUE
 
-  actual_train_args = sagemaker_session$train()$.call_args
+  actual_train_args = sms$train(..return_value = T)
   actual_train_args$job_name = NULL
 
   # check if keys are identical
@@ -593,12 +620,13 @@ test_that("test fit ps", {
 })
 
 test_that("test fit mpi", {
+  sms <- sagemaker_session()
   tf = TensorFlow$new(
     entry_point=SCRIPT_FILE,
     framework_version="1.11",
     py_version="py2",
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     instance_count=1,
     source_dir=DATA_DIR,
@@ -613,7 +641,7 @@ test_that("test fit mpi", {
   expected_train_args[["hyperparameters"]][[Framework$public_fields$MPI_NUM_PROCESSES_PER_HOST]] = "2"
   expected_train_args[["hyperparameters"]][[Framework$public_fields$MPI_CUSTOM_MPI_OPTIONS]] = "options"
 
-  actual_train_args = sagemaker_session$train()$.call_args
+  actual_train_args = sms$train(..return_value = T)
   actual_train_args$job_name = NULL
 
   # check if keys are identical
@@ -640,12 +668,13 @@ test_that("test fit mpi", {
 })
 
 test_that("test hyperparameters no model dir",{
+  sms <- sagemaker_session()
   tf = TensorFlow$new(
     entry_point=SCRIPT_PATH,
     framework_version="1.15.2",
     py_version="py3",
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     base_job_name=NULL,
@@ -659,13 +688,15 @@ test_that("test hyperparameters no model dir",{
 
 test_that("test hyperparameters no model dir",{
   custom_image = "tensorflow:latest"
+  sms <- sagemaker_session()
   tf = TensorFlow$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     image_uri=custom_image)
 
   expect_equal(custom_image, tf$training_image_uri())
 })
+

@@ -76,9 +76,9 @@ CandidateEstimator = R6Class("CandidateEstimator",
                    wait=TRUE,
                    logs=TRUE){
       if (logs && !wait)
-        stop(
+        ValueError$new(
           "Logs can only be shown if `wait` is set to `TRUE`.",
-          "Please either set `wait` to `TRUE` or set `logs` to `FALSE`.", call. = F
+          "Please either set `wait` to `TRUE` or set `logs` to `FALSE`."
         )
 
       self$name = candidate_name %||% self$name
@@ -100,11 +100,13 @@ CandidateEstimator = R6Class("CandidateEstimator",
             input_dict$train = sagemaker.common::.Job$private_methods$.format_string_uri_input(inputs)
           } else {
             msg = "Cannot format input %s. Expecting a string."
-            stop(sprintf(msg,inputs), call. = F)
+            ValueError$new(sprintf(msg,inputs))
           }
           channels = lapply(seq_along(input_dict), function(i)
-            sagemaker.common::.Job$private_methods$.convert_input_to_channel(names(input_dict)[i], input_dict[[i]]))
-
+            sagemaker.common::.Job$private_methods$.convert_input_to_channel(
+              names(input_dict)[i], input_dict[[i]]
+            )
+          )
           desc = self$sagemaker_session$sagemaker$describe_training_job(
             TrainingJobName=step_name)
 
@@ -125,7 +127,8 @@ CandidateEstimator = R6Class("CandidateEstimator",
           # prepare inputs
           if (!inherits(inputs, "character") || !startsWith(inputs, "s3://")){
             msg = "Cannot format input %s. Expecting a string starts with file:// or s3://"
-            stop(sprintf(msg, inputs), call. = F)}
+            ValueError$new(sprintf(msg, inputs))
+          }
           desc = self$sagemaker_session$sagemaker$describe_transform_job(
              TransformJobName=step_name)
           base_name = "sagemaker-automl-transform-rerun"

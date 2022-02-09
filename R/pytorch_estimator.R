@@ -177,19 +177,21 @@ PyTorch = R6Class("PyTorch",
         kwargs$image_uri = self$image_uri
       kwargs$name = private$.get_or_create_name(kwargs$name)
 
-      kwargs = c(
-        model_data=self$model_data,
-        role=(role %||% self$role),
-        entry_point=(entry_point %||% private$.model_entry_point()),
-        framework_version=self$framework_version,
-        py_version=self$py_version,
-        source_dir=(source_dir %||% private$.model_source_dir()),
-        container_log_level=self$container_log_level,
-        code_location=self$code_location,
-        model_server_workers=model_server_workers,
-        sagemaker_session=self$sagemaker_session,
-        vpc_config=self$get_vpc_config(vpc_config_override),
-        dependencies=(dependencies %||% self$dependencies),
+      kwargs = append(
+        list(
+          model_data=self$model_data,
+          role=(role %||% self$role),
+          entry_point=(entry_point %||% private$.model_entry_point()),
+          framework_version=self$framework_version,
+          py_version=self$py_version,
+          source_dir=(source_dir %||% private$.model_source_dir()),
+          container_log_level=self$container_log_level,
+          code_location=self$code_location,
+          model_server_workers=model_server_workers,
+          sagemaker_session=self$sagemaker_session,
+          vpc_config=self$get_vpc_config(vpc_config_override),
+          dependencies=(dependencies %||% self$dependencies)
+          ),
         kwargs
       )
       return (do.call(PyTorchModel$new, kwargs))

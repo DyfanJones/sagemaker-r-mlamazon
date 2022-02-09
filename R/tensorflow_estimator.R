@@ -169,16 +169,20 @@ TensorFlow = R6Class("TensorFlow",
       if (!("enable_network_isolation" %in% names(kwargs)))
         kwargs$enable_network_isolation = self$enable_network_isolation()
 
-      kwargs = c(model_data=self$model_data,
-                 role=role %||% self$role,
-                 container_log_level=self$container_log_level,
-                 framework_version=self$framework_version,
-                 sagemaker_session=self$sagemaker_session,
-                 vpc_config=list(self$get_vpc_config(vpc_config_override)),
-                 entry_point=entry_point,
-                 source_dir=source_dir,
-                 dependencies=dependencies,
-                 kwargs)
+      kwargs = append(
+        list(
+          model_data=self$model_data,
+          role=role %||% self$role,
+          container_log_level=self$container_log_level,
+          framework_version=self$framework_version,
+          sagemaker_session=self$sagemaker_session,
+          vpc_config=self$get_vpc_config(vpc_config_override),
+          entry_point=entry_point,
+          source_dir=source_dir,
+          dependencies=dependencies
+          ),
+        kwargs
+      )
       return(do.call(TensorFlowModel$new, kwargs))
     },
 
