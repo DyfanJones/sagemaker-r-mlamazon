@@ -1,9 +1,14 @@
-# NOTE: This code has been modified from AWS Sagemaker Python: https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/test_automl.py
+# NOTE: This code has been modified from AWS Sagemaker Python:
+# https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/sagemaker/automl/test_auto_ml.py
+
 context("automl")
 
 library(lgr)
+library(sagemaker.core)
+library(sagemaker.common)
+library(sagemaker.mlcore)
 
-lg <- get_logger("R6sagemaker")
+lg <- get_logger("sagemaker")
 
 MODEL_DATA = "s3://bucket/model.tar.gz"
 MODEL_IMAGE = "mi"
@@ -196,43 +201,68 @@ describe_auto_ml_job_mock = function(job_name=NULL){
     return(AUTO_ML_DESC_3)
 }
 
-paws_mock = Mock$new(name = "PawsCredentials", region_name = REGION)
-sagemaker_session = Mock$new(
-  name="Session",
-  paws_credentials=paws_mock,
-  config=NULL,
-  local_mode=FALSE
-)
+sagemaker_session <- function(){
+  paws_mock <- Mock$new(name = "PawsCredentials", region_name = REGION)
+  sms <- Mock$new(
+    name = "Session",
+    paws_credentials = paws_mock,
+    paws_region_name=REGION,
+    config=NULL,
+    local_mode=FALSE,
+    s3 = NULL
+  )
 
-sagemaker_session$default_bucket = Mock$new()$return_value(BUCKET_NAME, .min_var = 0)
-sagemaker_session$upload_data = Mock$new()$return_value(DEFAULT_S3_INPUT_DATA)
-sagemaker_session$expand_role = Mock$new()$return_value(ROLE)
-sagemaker_session$describe_auto_ml_job = Mock$new()$side_effect(describe_auto_ml_job_mock)
-sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(TRAINING_JOB)
-sagemaker_session$sagemaker$describe_transform_job = Mock$new()$return_value(TRANSFORM_JOB)
-sagemaker_session$list_candidates = Mock$new()$return_value(list("Candidates"= list()))
-sagemaker_session$sagemaker$list_tags = Mock$new()$return_value(LIST_TAGS_RESULT)
-sagemaker_session$call_args("auto_ml")
-sagemaker_session$call_args("train")
-sagemaker_session$call_args("transform")
-sagemaker_session$logs_for_auto_ml_job = Mock$new()$return_value(NULL)
+  s3_client <- Mock$new()
+  s3_client$.call_args("put_object")
+  s3_client$.call_args("get_object", list(Body = BIN_OBJ))
+
+  sagemaker_client <- Mock$new()
+
+  sagemaker_client$.call_args("describe_training_job", TRAINING_JOB)
+  sagemaker_client$.call_args("describe_transform_job", TRANSFORM_JOB)
+  sagemaker_client$.call_args("describe_endpoint", ENDPOINT_DESC)
+  sagemaker_client$.call_args("describe_endpoint_config", ENDPOINT_CONFIG_DESC)
+  sagemaker_client$.call_args("list_tags", LIST_TAGS_RESULT)
+
+  sms$.call_args("default_bucket", BUCKET_NAME)
+  sms$.call_args("expand_role", ROLE)
+  sms$.call_args("train")
+  sms$.call_args("create_model", "sagemaker-xgboost")
+  sms$.call_args("endpoint_from_production_variants", "sagemaker-xgboost-endpoint")
+  sms$.call_args("logs_for_job")
+  sms$.call_args("wait_for_job")
+  sms$.call_args("wait_for_compilation_job", describe_compilation)
+  sms$.call_args("compile_model")
+  sms$.call_args("upload_data", DEFAULT_S3_INPUT_DATA)
+  sms$.call_args("describe_auto_ml_job", side_effect=describe_auto_ml_job_mock)
+  sms$.call_args("list_candidates", list("Candidates"= list()))
+  sms$.call_args("auto_ml")
+  sms$.call_args("transform")
+  sms$.call_args("logs_for_auto_ml_job")
+
+  sms$s3 <- s3_client
+  sms$sagemaker <- sagemaker_client
+
+  return(sms)
+}
 
 candidate = Mock$new(
   name="candidate_mock",
   containers=INFERENCE_CONTAINERS,
   steps=CANDIDATE_STEPS,
-  sagemaker_session=sagemaker_session
+  sagemaker_session=sagemaker_session()
 )
 
 test_that("test auto ml default channel name", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   inputs = DEFAULT_S3_INPUT_DATA
-  AutoMLJob$new(sagemaker_session)$start_new(auto_ml, inputs)
+  AutoMLJob$new(sms)$start_new(auto_ml, inputs)
 
-  args = auto_ml$sagemaker_session$auto_ml()
+  args = auto_ml$sagemaker_session$auto_ml(..return_value = T)
   args$input_config
 
   expect_equal(args$input_config,
@@ -248,15 +278,18 @@ test_that("test auto ml default channel name", {
 })
 
 test_that("test auto ml invalid input data format", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   inputs = 1
 
   expect_error(
-    AutoMLJob$new(sagemaker_session)$start_new(auto_ml, inputs),
-    sprintf("Cannot format input %s. Expecting a string or a list of strings.", inputs))
+    AutoMLJob$new(sms)$start_new(auto_ml, inputs),
+    sprintf("Cannot format input %s. Expecting a string or a list of strings.", inputs),
+    class = "ValueError"
+  )
 })
 
 test_that("test auto ml only one of problem type and job objective provided", {
@@ -266,14 +299,17 @@ test_that("test auto ml only one of problem type and job objective provided", {
     AutoML$new(
       role=ROLE,
       target_attribute_name=TARGET_ATTRIBUTE_NAME,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sagemaker_session(),
       problem_type=PROBLEM_TYPE),
-    msg)
+    msg,
+    class = "ValueError"
+  )
 })
 
 test_that("test auto ml fit set logs to false", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   inputs = DEFAULT_S3_INPUT_DATA
@@ -287,10 +323,11 @@ test_that("test auto ml fit set logs to false", {
 })
 
 test_that("test auto ml additional optional params", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
     role=ROLE,
     target_attribute_name=TARGET_ATTRIBUTE_NAME,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     volume_kms_key=VOLUME_KMS_KEY,
     vpc_config=VPC_CONFIG,
     encrypt_inter_container_traffic=ENCRYPT_INTER_CONTAINER_TRAFFIC,
@@ -307,7 +344,7 @@ test_that("test auto ml additional optional params", {
 
   inputs = DEFAULT_S3_INPUT_DATA
   auto_ml$fit(inputs, job_name=JOB_NAME)
-  args = sagemaker_session$auto_ml()
+  args = sms$auto_ml(..return_value = T)
   expect_equal(args, list(
       "input_config"= list(
         list(
@@ -342,12 +379,13 @@ test_that("test auto ml additional optional params", {
 })
 
 test_that("test auto ml default fit", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
   inputs = DEFAULT_S3_INPUT_DATA
   auto_ml$fit(inputs)
-  args = sagemaker_session$auto_ml()
+  args = sms$auto_ml(..return_value=T)
   # remove timestamp job name
   args$job_name = NULL
   expect_equal(args, list(
@@ -373,25 +411,28 @@ test_that("test auto ml default fit", {
 })
 
 test_that("test auto ml local input", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
   inputs = DEFAULT_S3_INPUT_DATA
   auto_ml$fit(inputs)
-  args = sagemaker_session$auto_ml()
-  expect_equal(args$input_config[[1]]$DataSource$S3DataSource$S3Uri,
-               DEFAULT_S3_INPUT_DATA)
+  args = sms$auto_ml(..return_value = T)
+  expect_equal(
+    args$input_config[[1]]$DataSource$S3DataSource$S3Uri,
+    DEFAULT_S3_INPUT_DATA)
 })
 
 test_that("test auto ml input", {
+  sms <- sagemaker_session()
   inputs = AutoMLInput$new(
     inputs=DEFAULT_S3_INPUT_DATA, target_attribute_name="target", compression="Gzip"
   )
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
   auto_ml$fit(inputs)
-  args = sagemaker_session$auto_ml()
+  args = sms$auto_ml(..return_value = T)
   expect_equal(args$input_config, list(
     list(
       "DataSource"= list(
@@ -404,27 +445,28 @@ test_that("test auto ml input", {
 })
 
 test_that("test describe auto ml job", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
   expect_equal(auto_ml$describe_auto_ml_job(job_name=JOB_NAME),
                AUTO_ML_DESC)
 })
 
 test_that("test list candidates default", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   auto_ml$current_job_name = "current_job_name"
   expect_equal(auto_ml$list_candidates(), list())
 })
 
-sagemaker_session$call_args("list_candidates")
-
 test_that("test list candidates with optional args", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
   auto_ml$list_candidates(
     job_name=JOB_NAME,
@@ -436,7 +478,7 @@ test_that("test list candidates with optional args", {
     max_results=99
   )
 
-  args = sagemaker_session$list_candidates()
+  args = sms$list_candidates(..return_value = T)
   expect_equal(args, list(
     "job_name"= JOB_NAME,
     "status_equals"= "Completed",
@@ -449,8 +491,9 @@ test_that("test list candidates with optional args", {
 })
 
 test_that("test best candidate with existing best candidate", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   auto_ml$.best_candidate = BEST_CANDIDATE
@@ -459,8 +502,9 @@ test_that("test best candidate with existing best candidate", {
 })
 
 test_that("test best candidate default job name", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   auto_ml$current_job_name = JOB_NAME
@@ -470,8 +514,9 @@ test_that("test best candidate default job name", {
 })
 
 test_that("test best candidate job no desc", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   auto_ml$current_job_name = JOB_NAME
@@ -480,8 +525,9 @@ test_that("test best candidate job no desc", {
 })
 
 test_that("test best candidate no desc no job name", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   best_candidate = auto_ml$best_candidate(job_name=JOB_NAME)
@@ -489,8 +535,9 @@ test_that("test best candidate no desc no job name", {
 })
 
 test_that("test best candidate job name not match", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   auto_ml$current_job_name = JOB_NAME
@@ -500,19 +547,94 @@ test_that("test best candidate job name not match", {
   expect_equal(best_candidate, BEST_CANDIDATE_2)
 })
 
-# Skipping Mock Deploy tests
-# Unable to overload existing methods in R6 classes
+test_that("test_deploy", {
+  sms <- sagemaker_session()
+  auto_ml = AutoML$new(
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
+  )
+
+  mock_pipeline = Mock$new(name="pipeline_model")
+  mock_pipeline$.call_args("deploy")
+
+  unlockEnvironmentBinding(auto_ml$.__enclos_env__$self)
+  auto_ml$best_candidate = mock_fun(CANDIDATE_DICT)
+  auto_ml$create_model = mock_fun(mock_pipeline)
+
+  auto_ml$deploy(
+    initial_instance_count=INSTANCE_COUNT,
+    instance_type=INSTANCE_TYPE,
+    sagemaker_session=sagemaker_session,
+    model_kms_key=OUTPUT_KMS_KEY
+  )
+
+  expect_equal(auto_ml$create_model(..count = T), 1)
+  expect_equal(mock_pipeline$deploy(..count = T), 1)
+})
+
+test_that("test_deploy_optional_args", {
+  sms <- sagemaker_session()
+  auto_ml = AutoML$new(
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
+  )
+
+  mock_pipeline = Mock$new(name="pipeline_model")
+  mock_pipeline$.call_args("deploy")
+  unlockEnvironmentBinding(auto_ml$.__enclos_env__$self)
+  auto_ml$best_candidate = mock_fun(CANDIDATE_DICT)
+  auto_ml$create_model = mock_fun(mock_pipeline)
+
+  auto_ml$deploy(
+    initial_instance_count=INSTANCE_COUNT,
+    instance_type=INSTANCE_TYPE,
+    candidate=CANDIDATE_DICT,
+    sagemaker_session=sms,
+    name=JOB_NAME,
+    endpoint_name=JOB_NAME,
+    tags=TAGS,
+    wait=FALSE,
+    vpc_config=VPC_CONFIG,
+    enable_network_isolation=TRUE,
+    model_kms_key=OUTPUT_KMS_KEY,
+    predictor_cls=Predictor,
+    inference_response_keys=NULL
+  )
+  expect_equal(auto_ml$create_model(..count = T), 1)
+  expect_equal(auto_ml$create_model(..return_value = T), list(
+    name=JOB_NAME,
+    sagemaker_session=sms,
+    candidate=CANDIDATE_DICT,
+    inference_response_keys=NULL,
+    vpc_config=VPC_CONFIG,
+    enable_network_isolation=TRUE,
+    model_kms_key=OUTPUT_KMS_KEY,
+    predictor_cls=Predictor
+  ))
+  expect_equal(mock_pipeline$deploy(..count = T), 1)
+
+  expect_equal(mock_pipeline$deploy(..return_value = T), list(
+    initial_instance_count=INSTANCE_COUNT,
+    instance_type=INSTANCE_TYPE,
+    serializer=NULL,
+    deserializer=NULL,
+    endpoint_name=JOB_NAME,
+    kms_key=OUTPUT_KMS_KEY,
+    tags=TAGS,
+    wait=FALSE
+  ))
+})
 
 test_that("test candidate estimator get steps", {
-  candidate_estimator = CandidateEstimator$new(CANDIDATE_DICT, sagemaker_session=sagemaker_session)
+  sms <- sagemaker_session()
+  candidate_estimator = CandidateEstimator$new(CANDIDATE_DICT, sagemaker_session=sms)
   steps = candidate_estimator$get_steps()
 
   expect_equal(length(steps), 3)
 })
 
 test_that("test validate and update inference response", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
   cic = auto_ml$validate_and_update_inference_response(
     inference_containers=CLASSIFICATION_INFERENCE_CONTAINERS,
@@ -525,25 +647,29 @@ test_that("test validate and update inference response", {
 })
 
 test_that("test validate and update inference response wrong input", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
   expect_error(
     auto_ml$validate_and_update_inference_response(
       inference_containers=CLASSIFICATION_INFERENCE_CONTAINERS,
       inference_response_keys=c("wrong_key", "wrong_label", "probabilities", "probability")
-    )
+    ),
+    "Requested inference output keys*.",
+    class = "ValueError"
   )
 })
 
 test_that("test create model", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
 
   pipeline_model = auto_ml$create_model(
     name=JOB_NAME,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     candidate=CLASSIFICATION_CANDIDATE_DICT,
     vpc_config=VPC_CONFIG,
     enable_network_isolation=TRUE,
@@ -556,10 +682,11 @@ test_that("test create model", {
 })
 
 test_that("test attach", {
+  sms <- sagemaker_session()
   auto_ml = AutoML$new(
-    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sagemaker_session
+    role=ROLE, target_attribute_name=TARGET_ATTRIBUTE_NAME, sagemaker_session=sms
   )
-  aml = auto_ml$attach(auto_ml_job_name=JOB_NAME_3, sagemaker_session=sagemaker_session)
+  aml = auto_ml$attach(auto_ml_job_name=JOB_NAME_3, sagemaker_session=sms)
 
   expect_equal(aml$current_job_name, JOB_NAME_3)
   expect_equal(aml$role, "mock_role_arn")

@@ -1,4 +1,9 @@
-# NOTE: This code has been modified from AWS Sagemaker Python: https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/test_rl.py
+# NOTE: This code has been modified from AWS Sagemaker Python:
+# https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/test_rl.py
+
+library(sagemaker.core)
+library(sagemaker.common)
+library(sagemaker.mlcore)
 
 DATA_DIR = file.path(getwd(), "data")
 SCRIPT_PATH =file.path(DATA_DIR, "dummy_script.py")
@@ -31,33 +36,45 @@ EXPERIMENT_CONFIG = list(
   "TrialName"="trial",
   "TrialComponentDisplayName"="tc")
 
-paws_mock = Mock$new(name = "PawsCredentials", region_name = REGION)
-sagemaker_session = Mock$new(
-  name="Session",
-  paws_credentials=paws_mock,
-  paws_region_name=REGION,
-  config=NULL,
-  local_mode=FALSE,
-  s3 = NULL
-)
+sagemaker_session <- function(){
+  paws_mock <- Mock$new(name = "PawsCredentials", region_name = REGION)
+  sms <- Mock$new(
+    name = "Session",
+    paws_credentials = paws_mock,
+    paws_region_name=REGION,
+    config=NULL,
+    local_mode=FALSE,
+    s3 = NULL
+  )
 
-describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
-describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
-sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(describe)
-sagemaker_session$sagemaker$describe_endpoint = Mock$new()$return_value(ENDPOINT_DESC)
-sagemaker_session$sagemaker$describe_endpoint_config = Mock$new()$return_value(ENDPOINT_CONFIG_DESC)
-sagemaker_session$sagemaker$list_tags = Mock$new()$return_value(LIST_TAGS_RESULT)
-sagemaker_session$wait_for_compilation_job = Mock$new()$return_value(describe_compilation)
-sagemaker_session$default_bucket = Mock$new(name="default_bucket")$return_value(BUCKET_NAME, .min_var = 0)
-sagemaker_session$expand_role = Mock$new(name="expand_role")$return_value(ROLE)
-sagemaker_session$wait_for_job = Mock$new()$return_value(NULL)
-sagemaker_session$train <- Mock$new()$return_value(list(TrainingJobArn = "sagemaker-chainer-dummy"))
-sagemaker_session$logs_for_job <- Mock$new()$return_value(NULL)
-sagemaker_session$create_model <- Mock$new()$return_value("sagemaker-chainer")
-sagemaker_session$endpoint_from_production_variants <- Mock$new()$return_value("sagemaker-chainer-endpoint")
-sagemaker_session$s3$put_object <- Mock$new()$return_value(NULL)
-sagemaker_session$s3$get_object <- Mock$new()$return_value(list(Body = BIN_OBJ))
-sagemaker_session$call_args("compile_model")
+  s3_client <- Mock$new()
+  s3_client$.call_args("put_object")
+  s3_client$.call_args("get_object", list(Body = BIN_OBJ))
+
+  sagemaker_client <- Mock$new()
+  describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
+  describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
+
+  sagemaker_client$.call_args("describe_training_job", describe)
+  sagemaker_client$.call_args("describe_endpoint", ENDPOINT_DESC)
+  sagemaker_client$.call_args("describe_endpoint_config", ENDPOINT_CONFIG_DESC)
+  sagemaker_client$.call_args("list_tags", LIST_TAGS_RESULT)
+
+  sms$.call_args("default_bucket", BUCKET_NAME)
+  sms$.call_args("expand_role", ROLE)
+  sms$.call_args("train", list(TrainingJobArn = "sagemaker-rl-dummy"))
+  sms$.call_args("create_model", "sagemaker-rl")
+  sms$.call_args("endpoint_from_production_variants", "sagemaker-rl-endpoint")
+  sms$.call_args("logs_for_job")
+  sms$.call_args("wait_for_job")
+  sms$.call_args("wait_for_compilation_job", describe_compilation)
+  sms$.call_args("compile_model")
+
+  sms$s3 <- s3_client
+  sms$sagemaker <- sagemaker_client
+
+  return(sms)
+}
 
 .get_full_cpu_image_uri = function(toolkit, toolkit_version, framework){
   return(sprintf(IMAGE_URI_FORMAT_STRING,
@@ -129,7 +146,7 @@ sagemaker_session$call_args("compile_model")
   instance_type=NULL,
   base_job_name=NULL,
   ...){
-  `%||%` <- R6sagemaker.mlframework:::`%||%`
+  `%||%` <- sagemaker.mlframework:::`%||%`
   return(RLEstimator$new(
     entry_point=SCRIPT_PATH,
     toolkit=toolkit,
@@ -144,15 +161,15 @@ sagemaker_session$call_args("compile_model")
   )
 }
 
-
 test_that("test create rl model", {
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
+  sms <- sagemaker_session()
 
   rl = RLEstimator$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     toolkit=RLToolkit$COACH,
@@ -165,11 +182,11 @@ test_that("test create rl model", {
 
   model = rl$create_model()
 
-  supported_versions = R6sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
+  supported_versions = sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
   framework_version = supported_versions[[coach_tensorflow_version]][[RLFramework$TENSORFLOW]]
 
   expect_true(inherits(model, "TensorFlowModel"))
-  expect_identical(model$sagemaker_session, sagemaker_session)
+  expect_identical(model$sagemaker_session, sms)
   expect_equal(model$framework_version, framework_version)
   expect_equal(model$role, ROLE)
   expect_equal(model$.container_log_level, 20)
@@ -179,11 +196,12 @@ test_that("test create rl model", {
 test_that("test create mxnet model", {
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
+  sms <- sagemaker_session()
 
   rl = RLEstimator$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     toolkit=RLToolkit$COACH,
@@ -198,25 +216,26 @@ test_that("test create mxnet model", {
 
   model$.container_log_level
 
-  supported_versions = R6sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
+  supported_versions = sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
   framework_version = supported_versions[[coach_mxnet_version]][[RLFramework$MXNET]]
 
   expect_true(inherits(model, "MXNetModel"))
-  expect_identical(model$sagemaker_session, sagemaker_session)
+  expect_identical(model$sagemaker_session, sms)
   expect_equal(model$framework_version, framework_version)
   expect_equal(model$role, ROLE)
   expect_equal(model$container_log_level, "20")
   expect_null(model$vpc_config)
 })
 
-
 test_that("test create model with optional params",{
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
+  sms <- sagemaker_session()
+
   rl = RLEstimator$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     toolkit=RLToolkit$COACH,
@@ -245,10 +264,12 @@ test_that("test create model with custom image",{
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
   image = "selfdrivingcars:9000"
+  sms <- sagemaker_session()
+
   rl = RLEstimator$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     image_uri=image,
@@ -261,7 +282,7 @@ test_that("test create model with custom image",{
   new_entry_point = "deploy_script.py"
   model = rl$create_model(entry_point=new_entry_point)
 
-  expect_equal(model$sagemaker_session, sagemaker_session)
+  expect_equal(model$sagemaker_session, sms)
   expect_equal(model$image_uri, image)
   expect_equal(model$entry_point, new_entry_point)
   expect_equal(model$role, ROLE)
@@ -269,11 +290,13 @@ test_that("test create model with custom image",{
   expect_equal(model$source_dir, source_dir)
 })
 
-test_that("test rl",{
+test_that("test rl", {
+  sms <- sagemaker_session()
+
   rl = RLEstimator$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     toolkit=RLToolkit$COACH,
@@ -289,7 +312,7 @@ test_that("test rl",{
   expected_train_args[["input_config"]][[1]][["DataSource"]][["S3DataSource"]][["S3Uri"]] = inputs
   expected_train_args[["experiment_config"]] = EXPERIMENT_CONFIG
 
-  actual_train_args = sagemaker_session$train()$.call_args
+  actual_train_args = sms$train(..return_value = T)
 
   expect_identical(sort(names(actual_train_args)), sort(names(expected_train_args)))
 
@@ -319,8 +342,10 @@ test_that("test rl",{
 })
 
 test_that("test deploy mxnet", {
+  sms <- sagemaker_session()
+
   rl = .rl_estimator(
-    sagemaker_session,
+    sms,
     RLToolkit$COACH,
     coach_mxnet_version,
     RLFramework$MXNET,
@@ -331,20 +356,24 @@ test_that("test deploy mxnet", {
 })
 
 test_that("test deploy tfs", {
-  rl = .rl_estimator(
-    sagemaker_session,
+  sms <- sagemaker_session()
+
+  rl <- .rl_estimator(
+    sms,
     RLToolkit$COACH,
     coach_tensorflow_version,
     RLFramework$TENSORFLOW,
     instance_type="ml.g2.2xlarge")
   rl$fit()
-  predictor = rl$deploy(1, GPU)
+  expect_warning({predictor = rl$deploy(1, GPU)})
   expect_true(inherits(predictor, "TensorFlowPredictor"))
 })
 
 test_that("test deploy ray", {
+  sms <- sagemaker_session()
+
   rl = .rl_estimator(
-    sagemaker_session,
+    sms,
     RLToolkit$RAY,
     ray_tensorflow_version,
     RLFramework$TENSORFLOW,
@@ -352,19 +381,24 @@ test_that("test deploy ray", {
   rl$fit()
 
   error_msg = paste(
-    "NotImplementedError. Automatic deployment of Ray models is not currently available.",
+    "Automatic deployment of Ray models is not currently available.",
     "Train policy parameters are available in model checkpoints in the TrainingJob output.")
-  expect_error(rl$deploy(1, GPU),
-               error_msg)
+  expect_error(
+    rl$deploy(1, GPU),
+    error_msg,
+    class = "NotImplementedError"
+  )
 })
 
 test_that("test training image uri", {
   toolkit = RLToolkit$RAY
   framework = RLFramework$TENSORFLOW
+  sms <- sagemaker_session()
 
   image = "custom-image:latest"
+
   rl = .rl_estimator(
-    sagemaker_session,
+    sms,
     toolkit,
     ray_tensorflow_version,
     framework,
@@ -377,7 +411,7 @@ test_that("test training image uri", {
 test_that("test attach",{
   training_image = sprintf("1.dkr.ecr.us-west-2.amazonaws.com/sagemaker-rl-%s:%s%s-cpu-py3",
     RLFramework$MXNET, RLToolkit$COACH, coach_mxnet_version)
-  supported_versions = R6sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
+  supported_versions = sagemaker.mlframework:::TOOLKIT_FRAMEWORK_VERSION_MAP[[RLToolkit$COACH]]
   framework_version = supported_versions[[coach_mxnet_version]][[RLFramework$MXNET]]
   returned_job_description = list(
     "AlgorithmSpecification"=list("TrainingInputMode"="File", "TrainingImage"=training_image),
@@ -401,17 +435,17 @@ test_that("test attach",{
     "TrainingJobOutput"=list("S3TrainingJobOutput"="s3://here/output.tar.gz")
   )
 
-  sm = sagemaker_session$clone(T)
-  sm$sagemaker$describe_training_job = Mock$new()$return_value(returned_job_description)
+  sms <- sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   rl = .rl_estimator(
-    sagemaker_session,
+    sms,
     RLToolkit$COACH,
     coach_mxnet_version,
     RLFramework$MXNET,
     instance_type="ml.g2.2xlarge")
 
-  estimator = rl$attach(training_job_name="neo", sagemaker_session=sm)
+  estimator = rl$attach(training_job_name="neo", sagemaker_session=sms)
 
   expect_equal(estimator$latest_training_job, "neo")
   expect_equal(estimator$framework, RLFramework$MXNET)
@@ -455,20 +489,21 @@ test_that("test attach wrong framework", {
     "TrainingJobOutput"=list("S3TrainingJobOutput"="s3://here/output.tar.gz")
   )
 
-  sm = sagemaker_session$clone(T)
-  sm$sagemaker$describe_training_job = Mock$new()$return_value(rjd)
+  sms <- sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job", rjd)
 
   rl = .rl_estimator(
-    sagemaker_session,
+    sms,
     RLToolkit$COACH,
     coach_mxnet_version,
     RLFramework$MXNET,
     instance_type="ml.g2.2xlarge")
 
   expect_error(
-    rl$attach(training_job_name="neo", sagemaker_session=sm),
-    "ValueError. Training job: neo didn't use image for requested framework")
-
+    rl$attach(training_job_name="neo", sagemaker_session=sms),
+    "Training job: neo didn't use image for requested framework",
+    class="ValueError"
+  )
 })
 
 test_that("test attach custom image",{
@@ -496,17 +531,17 @@ test_that("test attach custom image",{
     "TrainingJobOutput"=list("S3TrainingJobOutput"="s3://here/output.tar.gz")
   )
 
-  sm = sagemaker_session$clone(T)
-  sm$sagemaker$describe_training_job = Mock$new()$return_value(returned_job_description)
+  sms <- sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   rl = .rl_estimator(
-    sagemaker_session,
+    sms,
     RLToolkit$COACH,
     coach_mxnet_version,
     RLFramework$MXNET,
     instance_type="ml.g2.2xlarge")
 
-  estimator = rl$attach(training_job_name="neo", sagemaker_session=sm)
+  estimator = rl$attach(training_job_name="neo", sagemaker_session=sms)
 
   expect_equal(estimator$latest_training_job, "neo")
   expect_equal(estimator$image_uri, training_image)
@@ -514,7 +549,8 @@ test_that("test attach custom image",{
 })
 
 test_that("test wrong framework format",{
-  error_msg = "ValueError. Invalid type.*"
+  sms <- sagemaker_session()
+  error_msg = "Invalid type.*"
   expect_error(
     RLEstimator$new(
       toolkit=RLToolkit$RAY,
@@ -522,15 +558,18 @@ test_that("test wrong framework format",{
       toolkit_version=RLEstimator$RAY_LATEST_VERSION,
       entry_point=SCRIPT_PATH,
       role=ROLE,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sms,
       instance_count=INSTANCE_COUNT,
       instance_type=INSTANCE_TYPE,
       framework_version=NULL),
-    error_msg)
+    error_msg,
+    class="ValueError"
+  )
 })
 
 test_that("test wrong toolkit format",{
-  error_msg = "ValueError. Invalid type.*"
+  error_msg = "Invalid type.*"
+  sms <- sagemaker_session()
   expect_error(
     RLEstimator$new(
       toolkit="coach2",
@@ -538,27 +577,33 @@ test_that("test wrong toolkit format",{
       toolkit_version=RLEstimator$public_fields$COACH_LATEST_VERSION_TF,
       entry_point=SCRIPT_PATH,
       role=ROLE,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sms,
       instance_count=INSTANCE_COUNT,
       instance_type=INSTANCE_TYPE,
       framework_version=NULL),
-    error_msg)
+    error_msg,
+    class = "ValueError"
+  )
 })
 
 test_that("test missing required parameters",{
-  error_msg = "AttributeError. Please provide.*"
+  sms <- sagemaker_session()
+  error_msg = "Please provide.*"
   expect_error(
     RLEstimator$new(
       entry_point=SCRIPT_PATH,
       role=ROLE,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sms,
       instance_count=INSTANCE_COUNT,
       instance_type=INSTANCE_TYPE),
-    error_msg)
+    error_msg,
+    class = "AttributeError"
+  )
 })
 
 test_that("test wrong type parameters",{
-  error_msg = "AttributeError. Provided.*"
+  sms <- sagemaker_session()
+  error_msg = "Provided.*"
   expect_error(
     RLEstimator$new(
       toolkit=RLToolkit$COACH,
@@ -566,8 +611,10 @@ test_that("test wrong type parameters",{
       toolkit_version=RLEstimator$public_fields$RAY_LATEST_VERSION,
       entry_point=SCRIPT_PATH,
       role=ROLE,
-      sagemaker_session=sagemaker_session,
+      sagemaker_session=sms,
       instance_count=INSTANCE_COUNT,
       instance_type=INSTANCE_TYPE),
-    error_msg)
+    error_msg,
+    class = "AttributeError"
+  )
 })

@@ -1,4 +1,11 @@
+# NOTE: This code has been modified from AWS Sagemaker Python:
+# https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/test_xgboost.py
+
 context("xgboost")
+
+library(sagemaker.core)
+library(sagemaker.common)
+library(sagemaker.mlcore)
 
 ENDPOINT_DESC = list("EndpointConfigName"= "test-endpoint")
 
@@ -34,33 +41,53 @@ xgboost_framework_version ="1.0-1"
   return(sprintf(IMAGE_URI_FORMAT_STRING, REGION, IMAGE_URI, version, "cpu", PYTHON_VERSION))
 }
 
-paws_cred <- Mock$new(name = "PawsCredentials", region_name = REGION)
-sagemaker_session <- Mock$new(
-  name = "Session",
-  paws_credentials = paws_cred,
-  paws_region_name=REGION,
-  config=NULL,
-  local_mode=FALSE,
-  s3 = NULL)
+sagemaker_session <- function(){
+  paws_mock <- Mock$new(name = "PawsCredentials", region_name = REGION)
+  sms <- Mock$new(
+    name = "Session",
+    paws_credentials = paws_mock,
+    paws_region_name=REGION,
+    config=NULL,
+    local_mode=FALSE,
+    s3 = NULL
+  )
 
-describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
-sagemaker_session$sagemaker$describe_training_job <- Mock$new()$return_value(describe)
-sagemaker_session$sagemaker$describe_endpoint <- Mock$new()$return_value(ENDPOINT_DESC)
-sagemaker_session$sagemaker$describe_endpoint_config <- Mock$new()$return_value(ENDPOINT_CONFIG_DESC)
-sagemaker_session$sagemaker$sagemaker$list_tags <- Mock$new()$return_value(describe)
-sagemaker_session$default_bucket <- Mock$new()$return_value(BUCKET_NAME, .min_var = 0)
-sagemaker_session$expand_role <- Mock$new()$return_value(ROLE)
-sagemaker_session$create_model <- Mock$new()$return_value("sagemaker-xgboost")
-sagemaker_session$endpoint_from_production_variants <- Mock$new()$return_value("sagemaker-xgboost-endpoint")
-sagemaker_session$train <- Mock$new()$return_value(list(TrainingJobArn = "sagemaker-xgboost-dummy"))
-sagemaker_session$logs_for_job <- Mock$new()$return_value(NULL)
+  s3_client <- Mock$new()
+  s3_client$.call_args("put_object")
+  s3_client$.call_args("get_object", list(Body = BIN_OBJ))
+
+  sagemaker_client <- Mock$new()
+  describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
+  describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
+
+  sagemaker_client$.call_args("describe_training_job", describe)
+  sagemaker_client$.call_args("describe_endpoint", ENDPOINT_DESC)
+  sagemaker_client$.call_args("describe_endpoint_config", ENDPOINT_CONFIG_DESC)
+  sagemaker_client$.call_args("list_tags", LIST_TAGS_RESULT)
+
+  sms$.call_args("default_bucket", BUCKET_NAME)
+  sms$.call_args("expand_role", ROLE)
+  sms$.call_args("train", list(TrainingJobArn = "sagemaker-xgboost-dummy"))
+  sms$.call_args("create_model", "sagemaker-xgboost")
+  sms$.call_args("endpoint_from_production_variants", "sagemaker-xgboost-endpoint")
+  sms$.call_args("logs_for_job")
+  sms$.call_args("wait_for_job")
+  sms$.call_args("wait_for_compilation_job", describe_compilation)
+  sms$.call_args("compile_model")
+
+  sms$s3 <- s3_client
+  sms$sagemaker <- sagemaker_client
+
+  return(sms)
+}
 
 test_that("test create model", {
   source_dir = "s3://mybucket/source"
+  sms <- sagemaker_session()
   xgboost_model = XGBoostModel$new(
     model_data=source_dir,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     entry_point=SCRIPT_PATH,
     framework_version=xgboost_framework_version)
   default_image_uri = .get_full_cpu_image_uri(xgboost_framework_version)
@@ -72,11 +99,12 @@ test_that("test create model from estimator",{
   container_log_level = 'INFO'
   source_dir = "s3://mybucket/source"
   base_job_name = "job"
+  sms <- sagemaker_session()
 
   xgboost = XGBoost$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     instance_count=1,
     framework_version=xgboost_framework_version,
@@ -90,7 +118,7 @@ test_that("test create model from estimator",{
   model_name = "model_name"
   model = xgboost$create_model()
 
-  expect_equal(model$sagemaker_session, sagemaker_session)
+  expect_equal(model$sagemaker_session, sms)
   expect_equal(model$framework_version, xgboost_framework_version)
   expect_equal(model$py_version, xgboost$py_version)
   expect_equal(model$entry_point, basename(SCRIPT_PATH))
@@ -98,26 +126,29 @@ test_that("test create model from estimator",{
   expect_equal(model$container_log_level, "20")
   expect_equal(model$source_dir, source_dir)
   expect_null(model$vpc_config)
-
 })
 
 test_that("test deploy model", {
+  sms <- sagemaker_session()
+
   model = XGBoostModel$new(
     "s3://some/data.tar.gz",
     role=ROLE,
     framework_version=xgboost_framework_version,
     entry_point=SCRIPT_PATH,
-    sagemaker_session=sagemaker_session)
+    sagemaker_session=sms)
   predictor = model$deploy(1, CPU)
   expect_true(inherits(predictor, "XGBoostPredictor"))
 })
 
 test_that("test training image uri", {
+  sms <- sagemaker_session()
+
   xgboost = XGBoost$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
     framework_version=xgboost_framework_version,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_type=INSTANCE_TYPE,
     instance_count=1,
     py_version=PYTHON_VERSION)

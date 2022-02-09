@@ -2,6 +2,10 @@
 # https://github.com/aws/sagemaker-python-sdk/blob/master/tests/unit/sagemaker/huggingface/test_estimator.py
 context("huggingface")
 
+library(sagemaker.core)
+library(sagemaker.common)
+library(sagemaker.mlcore)
+
 DATA_DIR = file.path(getwd(), "data")
 SCRIPT_PATH =file.path(DATA_DIR, "dummy_script.py")
 SERVING_SCRIPT_FILE = "another_dummy_script.py"
@@ -34,33 +38,45 @@ EXPERIMENT_CONFIG = list(
   "TrialComponentDisplayName"="tc"
 )
 
-paws_mock = Mock$new(name = "PawsCredentials", region_name = REGION)
-sagemaker_session = Mock$new(
-  name="Session",
-  paws_credentials=paws_mock,
-  paws_region_name=REGION,
-  config=NULL,
-  local_mode=FALSE,
-  s3 = NULL
-)
+sagemaker_session <- function(){
+  paws_mock <- Mock$new(name = "PawsCredentials", region_name = REGION)
+  sms <- Mock$new(
+    name = "Session",
+    paws_credentials = paws_mock,
+    paws_region_name=REGION,
+    config=NULL,
+    local_mode=FALSE,
+    s3 = NULL
+  )
 
-describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
-describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
-sagemaker_session$sagemaker$describe_training_job = Mock$new()$return_value(describe)
-sagemaker_session$sagemaker$describe_endpoint = Mock$new()$return_value(ENDPOINT_DESC)
-sagemaker_session$sagemaker$describe_endpoint_config = Mock$new()$return_value(ENDPOINT_CONFIG_DESC)
-sagemaker_session$sagemaker$list_tags = Mock$new()$return_value(LIST_TAGS_RESULT)
-sagemaker_session$wait_for_compilation_job = Mock$new()$return_value(describe_compilation)
-sagemaker_session$default_bucket = Mock$new(name="default_bucket")$return_value(BUCKET_NAME, .min_var = 0)
-sagemaker_session$expand_role = Mock$new(name="expand_role")$return_value(ROLE)
-sagemaker_session$wait_for_job = Mock$new()$return_value(NULL)
-sagemaker_session$train <- Mock$new()$return_value(list(TrainingJobArn = "sagemaker-chainer-dummy"))
-sagemaker_session$logs_for_job <- Mock$new()$return_value(NULL)
-sagemaker_session$create_model <- Mock$new()$return_value("sagemaker-chainer")
-sagemaker_session$endpoint_from_production_variants <- Mock$new()$return_value("sagemaker-chainer-endpoint")
-sagemaker_session$s3$put_object <- Mock$new()$return_value(NULL)
-sagemaker_session$s3$get_object <- Mock$new()$return_value(list(Body = BIN_OBJ))
-sagemaker_session$call_args("compile_model")
+  s3_client <- Mock$new()
+  s3_client$.call_args("put_object")
+  s3_client$.call_args("get_object", list(Body = BIN_OBJ))
+
+  sagemaker_client <- Mock$new()
+  describe = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/m.tar.gz"))
+  describe_compilation = list("ModelArtifacts"= list("S3ModelArtifacts"= "s3://m/model_c5.tar.gz"))
+
+  sagemaker_client$.call_args("describe_training_job", describe)
+  sagemaker_client$.call_args("describe_endpoint", ENDPOINT_DESC)
+  sagemaker_client$.call_args("describe_endpoint_config", ENDPOINT_CONFIG_DESC)
+  sagemaker_client$.call_args("list_tags", LIST_TAGS_RESULT)
+
+  sms$.call_args("default_bucket", BUCKET_NAME)
+  sms$.call_args("expand_role", ROLE)
+  sms$.call_args("train", list(TrainingJobArn = "sagemaker-chainer-dummy"))
+  sms$.call_args("create_model", "sagemaker-chainer")
+  sms$.call_args("endpoint_from_production_variants", "sagemaker-chainer-endpoint")
+  sms$.call_args("logs_for_job")
+  sms$.call_args("wait_for_job")
+  sms$.call_args("wait_for_compilation_job", describe_compilation)
+  sms$.call_args("compile_model")
+
+  sms$s3 <- s3_client
+  sms$sagemaker <- sagemaker_client
+
+  return(sms)
+}
 
 .get_full_gpu_image_uri = function(version, base_framework_version){
   return(ImageUris$new()$retrieve(
@@ -126,7 +142,7 @@ sagemaker_session$call_args("compile_model")
 }
 
 test_that("test huggingface invalid args", {
-  error_msg = "ValueError. Please use either full version or shortened version for both transformers_version, tensorflow_version and pytorch_version."
+  error_msg = "Please use either full version or shortened version for both transformers_version, tensorflow_version and pytorch_version."
   expect_error(
     HuggingFace$new(
       py_version="py36",
@@ -138,10 +154,11 @@ test_that("test huggingface invalid args", {
       pytorch_version="1.6",
       enable_sagemaker_metrics=FALSE
     ),
-    error_msg
+    error_msg,
+    class="ValueError"
   )
 
-  error_msg = "ValueError. transformers_version, and image_uri are both NULL. Specify either transformers_version or image_uri"
+  error_msg = "transformers_version, and image_uri are both NULL. Specify either transformers_version or image_uri"
   expect_error(
     HuggingFace$new(
       py_version="py36",
@@ -152,10 +169,11 @@ test_that("test huggingface invalid args", {
       pytorch_version="1.6",
       enable_sagemaker_metrics=FALSE
     ),
-    error_msg
+    error_msg,
+    class="ValueError"
   )
 
-  error_msg = "ValueError. tensorflow_version and pytorch_version are both NULL. Specify either tensorflow_version or pytorch_version."
+  error_msg = "tensorflow_version and pytorch_version are both NULL. Specify either tensorflow_version or pytorch_version."
   expect_error(
     HuggingFace$new(
       py_version="py36",
@@ -166,10 +184,11 @@ test_that("test huggingface invalid args", {
       transformers_version="4.2.1",
       enable_sagemaker_metrics=FALSE
     ),
-    error_msg
+    error_msg,
+    class="ValueError"
   )
 
-  error_msg = "ValueError. tensorflow_version and pytorch_version are both not NULL. Specify only tensorflow_version or pytorch_version."
+  error_msg = "tensorflow_version and pytorch_version are both not NULL. Specify only tensorflow_version or pytorch_version."
   expect_error(
     HuggingFace$new(
       py_version="py36",
@@ -182,18 +201,20 @@ test_that("test huggingface invalid args", {
       tensorflow_version="2.3",
       enable_sagemaker_metrics=FALSE
     ),
-    error_msg
+    error_msg,
+    class="ValueError"
   )
 })
 
 test_that("test huggingface",{
   huggingface_training_version="4.4"
   huggingface_pytorch_version="1.6"
+  sms = sagemaker_session()
   hf = HuggingFace$new(
     py_version="py36",
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     transformers_version=huggingface_training_version,
@@ -210,7 +231,7 @@ test_that("test huggingface",{
   )
   expected_train_args[["experiment_config"]] = EXPERIMENT_CONFIG
   expected_train_args[["enable_sagemaker_metrics"]] = FALSE
-  actual_train_args = sagemaker_session$train()$.call_args
+  actual_train_args = sms$train(..return_value = T)
 
   expect_identical(sort(names(expected_train_args)), sort(names(actual_train_args)))
 
@@ -271,16 +292,14 @@ test_that("test attach", {
     "TrainingJobOutput"=list("S3TrainingJobOutput"="s3://here/output.tar.gz")
   )
 
-  sm = sagemaker_session$clone(TRUE)
-  sm$sagemaker$describe_training_job = Mock$new()$return_value(
-    returned_job_description
-  )
+  sms = sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   hf=HuggingFace$new(
     py_version="py36",
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     transformers_version=huggingface_training_version,
@@ -288,7 +307,7 @@ test_that("test attach", {
     enable_sagemaker_metrics=FALSE
   )
 
-  estimator = hf$attach(training_job_name="neo", sagemaker_session=sm)
+  estimator = hf$attach(training_job_name="neo", sagemaker_session=sms)
   expect_equal(estimator$latest_training_job, "neo")
   expect_equal(estimator$py_version, "py36")
   expect_equal(estimator$framework_version, huggingface_training_version)
@@ -304,7 +323,6 @@ test_that("test attach", {
   expect_equal(estimator$source_dir, "s3://some/sourcedir.tar.gz")
   expect_equal(estimator$entry_point, "iris-dnn-classifier.py")
 })
-
 
 test_that("test attach custom image", {
   huggingface_training_version = "4.4"
@@ -332,15 +350,15 @@ test_that("test attach custom image", {
     "OutputDataConfig"=list("KmsKeyId"="", "S3OutputPath"="s3://place/output/neo"),
     "TrainingJobOutput"=list("S3TrainingJobOutput"="s3://here/output.tar.gz")
   )
-  sm = sagemaker_session$clone(TRUE)
-  sm$sagemaker$describe_training_job = Mock$new()$return_value(
-    returned_job_description)
+
+  sms = sagemaker_session()
+  sms$sagemaker$.call_args("describe_training_job", returned_job_description)
 
   hf=HuggingFace$new(
     py_version="py36",
     entry_point=SCRIPT_PATH,
     role=ROLE,
-    sagemaker_session=sagemaker_session,
+    sagemaker_session=sms,
     instance_count=INSTANCE_COUNT,
     instance_type=INSTANCE_TYPE,
     transformers_version=huggingface_training_version,
@@ -348,7 +366,7 @@ test_that("test attach custom image", {
     enable_sagemaker_metrics=FALSE
   )
 
-  estimator = hf$attach(training_job_name="neo", sagemaker_session=sm)
+  estimator = hf$attach(training_job_name="neo", sagemaker_session=sms)
 
   expect_equal(estimator$latest_training_job, "neo")
   expect_equal(estimator$image_uri, training_image)
