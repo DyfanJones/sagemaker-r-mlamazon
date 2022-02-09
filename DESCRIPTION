@@ -20,7 +20,9 @@ Imports:
 Suggests:
     crayon,
     testthat,
-    mockthat
+    mockthat,
+    reticulate,
+    sparsio
 Remotes:
     DyfanJones/sagemaker-r-core,
     DyfanJones/sagemaker-r-common,
