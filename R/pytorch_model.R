@@ -6,6 +6,7 @@
 #' @include r_utils.R
 
 #' @import R6
+#' @import sagemaker.core
 #' @import sagemaker.common
 #' @import sagemaker.mlcore
 #' @import lgr
@@ -194,8 +195,9 @@ PyTorchModel = R6Class("PyTorchModel",
       deploy_image = self$image_uri
       if (is.null(deploy_image)){
         if (is.null(instance_type))
-          stop("Must supply either an instance type (for choosing CPU vs GPU) or an image URI.",
-               call. = F)
+          ValueError$new(
+            "Must supply either an instance type (for choosing CPU vs GPU) or an image URI."
+          )
       }
 
       region_name = self$sagemaker_session$paws_region_name
@@ -205,7 +207,7 @@ PyTorchModel = R6Class("PyTorchModel",
 
       deploy_key_prefix = model_code_key_prefix(self$key_prefix, self$name, deploy_image)
       private$.upload_code(deploy_key_prefix, repack=private$.is_mms_version())
-      deploy_env = list(self$env)
+      deploy_env = as.list(self$env)
       deploy_env = modifyList(deploy_env, private$.framework_env_vars())
 
       if (!islistempty(self$model_server_workers))
@@ -226,7 +228,7 @@ PyTorchModel = R6Class("PyTorchModel",
     serving_image_uri = function(region_name,
                                  instance_type,
                                  accelerator_type=NULL){
-      return(sagemaker.mlcore::ImageUris$new()$retrieve(
+      return(sagemaker.core::ImageUris$new()$retrieve(
         attr(self, "_framework_name"),
         region_name,
         version=self$framework_version,

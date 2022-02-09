@@ -231,7 +231,7 @@ HuggingFaceModel = R6Class("HuggingFaceModel",
       if (!is.null(self$model_server_workers))
         deploy_env[[toupper(model_parameters$MODEL_SERVER_WORKERS_PARAM_NAME)]] = as.character(self$model_server_workers)
       return(container_def(
-        deploy_image, self$repacked_model_data %||% self.model_data, deploy_env)
+        deploy_image, self$repacked_model_data %||% self$model_data, deploy_env)
       )
     },
 

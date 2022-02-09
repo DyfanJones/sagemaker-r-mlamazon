@@ -95,11 +95,13 @@ MXNet = R6Class("MXNet",
         kwargs$enable_sagemaker_metrics = TRUE
       }
 
-      kwargs = c(
-        entry_point = entry_point,
-        source_dir = source_dir,
-        hyperparameters = list(hyperparameters),
-        image_uri = image_uri,
+      kwargs = append(
+        list(
+          entry_point = entry_point,
+          source_dir = source_dir,
+          hyperparameters = hyperparameters,
+          image_uri = image_uri
+        ),
         kwargs
       )
       do.call(super$initialize, kwargs)
@@ -166,22 +168,23 @@ MXNet = R6Class("MXNet",
 
       kwargs$name = private$.get_or_create_name(kwargs$name)
 
-      kwargs = c(
-        model_data = self$model_data,
-        role = role %||% self$role,
-        entry_point = entry_point,
-        framework_version=self$framework_version,
-        py_version=self$py_version,
-        source_dir=source_dir %||% private$.model_source_dir(),
-        container_log_level=self$container_log_level,
-        code_location=self$code_location,
-        model_server_workers=model_server_workers,
-        sagemaker_session=self$sagemaker_session,
-        vpc_config=self$get_vpc_config(vpc_config_override),
-        dependencies=(dependencies %||% self$dependencies),
+      kwargs = append(
+        list(
+          model_data = self$model_data,
+          role = role %||% self$role,
+          entry_point = entry_point,
+          framework_version=self$framework_version,
+          py_version=self$py_version,
+          source_dir=source_dir %||% private$.model_source_dir(),
+          container_log_level=self$container_log_level,
+          code_location=self$code_location,
+          model_server_workers=model_server_workers,
+          sagemaker_session=self$sagemaker_session,
+          vpc_config=self$get_vpc_config(vpc_config_override),
+          dependencies=(dependencies %||% self$dependencies)
+        ),
         kwargs
       )
-
       model = do.call(MXNetModel$new, kwargs)
 
       if (is.null(entry_point))

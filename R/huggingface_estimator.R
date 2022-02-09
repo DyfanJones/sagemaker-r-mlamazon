@@ -244,21 +244,23 @@ HuggingFace = R6Class("HuggingFace",
           kwargs[["image_uri"]] = self$image_uri
       }
       kwargs[["name"]] = private$.get_or_create_name(kwargs[["name"]])
-      kwargs = c(
-        role = role %||% self$role,
-        model_data=self$model_data,
-        entry_point=entry_point,
-        transformers_version=self$framework_version,
-        tensorflow_version=self$tensorflow_version,
-        pytorch_version=self$pytorch_version,
-        py_version=self$py_version,
-        source_dir=(source_dir %||% private$.model_source_dir()),
-        container_log_level=self$container_log_level,
-        code_location=self$code_location,
-        model_server_workers=model_server_workers,
-        sagemaker_session=self$sagemaker_session,
-        vpc_config=self$get_vpc_config(vpc_config_override),
-        dependencies=(dependencies %||% self$dependencies),
+      kwargs = append(
+        list(
+          role = role %||% self$role,
+          model_data=self$model_data,
+          entry_point=entry_point,
+          transformers_version=self$framework_version,
+          tensorflow_version=self$tensorflow_version,
+          pytorch_version=self$pytorch_version,
+          py_version=self$py_version,
+          source_dir=(source_dir %||% private$.model_source_dir()),
+          container_log_level=self$container_log_level,
+          code_location=self$code_location,
+          model_server_workers=model_server_workers,
+          sagemaker_session=self$sagemaker_session,
+          vpc_config=self$get_vpc_config(vpc_config_override),
+          dependencies=(dependencies %||% self$dependencies)
+        ),
         kwargs
       )
       return(do.call(HuggingFaceModel$new, kwargs))
