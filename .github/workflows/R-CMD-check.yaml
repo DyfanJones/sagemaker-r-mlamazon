@@ -21,10 +21,6 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: install system dependencies
-        run: |
-          sudo apt-get install protobuf-compiler libprotobuf-dev libprotoc-dev
-
       - name: Install Sagemaker Dev package versions
         run: |
           install.packages("pak")
