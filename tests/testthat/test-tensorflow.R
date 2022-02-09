@@ -282,7 +282,7 @@ test_that("test attach", {
   sm <- sagemaker_session()
   sm$sagemaker$.call_args("describe_training_job", rjd)
 
-  tf = TensorFlow$new(sagemaker_session,
+  tf = TensorFlow$new(sagemaker_session = sm,
                       framework_version="1.15",
                       py_version="py3",
                       entry_point="dummy.py",
@@ -334,7 +334,7 @@ test_that("test attach old container", {
   sm <- sagemaker_session()
   sm$sagemaker$.call_args("describe_training_job", rjd)
 
-  tf = TensorFlow$new(sagemaker_session,
+  tf = TensorFlow$new(sagemaker_session = sm,
                       framework_version="1.15",
                       py_version="py3",
                       entry_point="dummy.py",
@@ -383,7 +383,7 @@ test_that("test attach wrong framework", {
   sm <- sagemaker_session()
   sm$sagemaker$.call_args("describe_training_job", returned_job_description)
 
-  tf = TensorFlow$new(sagemaker_session,
+  tf = TensorFlow$new(sagemaker_session = sm,
                       framework_version="1.15",
                       py_version="py3",
                       entry_point="dummy.py",
@@ -420,7 +420,7 @@ test_that("test attach custom image", {
   sm <- sagemaker_session()
   sm$sagemaker$.call_args("describe_training_job", rjd)
 
-  tf = TensorFlow$new(sm,
+  tf = TensorFlow$new(sagemaker_session = sm,
                       framework_version="1.15",
                       py_version="py3",
                       entry_point="dummy.py",

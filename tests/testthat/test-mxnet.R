@@ -401,7 +401,8 @@ test_that("test model prepare container def no instance type or image", {
     role=ROLE,
     entry_point=SCRIPT_PATH,
     framework_version=mxnet_inference_version,
-    py_version=mxnet_inference_py_version
+    py_version=mxnet_inference_py_version,
+    sagemaker_session=sagemaker_session()
   )
 
   expect_error(model$prepare_container_def())

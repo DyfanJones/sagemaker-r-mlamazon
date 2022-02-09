@@ -354,7 +354,8 @@ test_that("test model prepare container def no instance type or image", {
     role=ROLE,
     entry_point=SCRIPT_PATH,
     framework_version="1.3.1",
-    py_version="py3"
+    py_version="py3",
+    sagemaker_session=sagemaker_session()
   )
   expect_error(model$prepare_container_def())
 })
