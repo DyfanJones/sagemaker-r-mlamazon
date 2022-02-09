@@ -6,8 +6,6 @@ library(sagemaker.core)
 library(sagemaker.common)
 library(sagemaker.mlcore)
 
-setwd("~/Documents/Packages/sagemaker-r-mlframework/tests/testthat")
-
 DATA_DIR = file.path(getwd(), "data")
 SCRIPT_PATH = file.path(DATA_DIR, "dummy_script.py")
 SERVING_SCRIPT_FILE = "another_dummy_script.py"
