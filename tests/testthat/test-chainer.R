@@ -173,7 +173,9 @@ test_that("test attach with additional hyperparameters", {
     py_version = chainer_py_version,
     role = ROLE,
     instance_count = INSTANCE_COUNT,
-    instance_type = INSTANCE_TYPE)
+    instance_type = INSTANCE_TYPE,
+    sagemaker_session = sm
+  )
   chainer = do.call(Chainer$new, chainer_args)
 
   estimator = chainer$attach(training_job_name="neo", sagemaker_session=sm)
@@ -283,10 +285,6 @@ test_that("test create model with custom image", {
   expect_equal(model$image_uri, custom_image)
 })
 
-################################################################################
-################################################################################
-################################################################################
-################################################################################
 test_that("test chainer", {
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
@@ -354,7 +352,8 @@ test_that("test model prepare container def no instance type or image", {
     role=ROLE,
     entry_point=SCRIPT_PATH,
     framework_version=chainer_version,
-    py_version=chainer_py_version
+    py_version=chainer_py_version,
+    sagemaker_session=sagemaker_session()
   )
 
   expect_error(model$prepare_container_def())
