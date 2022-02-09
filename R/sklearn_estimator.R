@@ -162,20 +162,23 @@ SKLearn = R6Class("SKLearn",
       if (!("enable_network_isolation" %in% names(kwargs)))
         kwargs$enable_network_isolation = self$enable_network_isolation()
 
-      kwargs = c(
-        model_data = self$model_data,
-        role = role,
-        entry_point = entry_point %||% private$.model_entry_point(),
-        source_dir=(source_dir %||% private$.model_source_dir()),
-        container_log_level=self$container_log_level,
-        code_location=self$code_location,
-        py_version=self$py_version,
-        framework_version=self$framework_version,
-        model_server_workers=model_server_workers,
-        sagemaker_session=self$sagemaker_session,
-        vpc_config=self$get_vpc_config(vpc_config_override),
-        dependencies=(dependencies %||% self$dependencies),
-        kwargs)
+      kwargs = append(
+        list(
+          model_data = self$model_data,
+          role = role,
+          entry_point = entry_point %||% private$.model_entry_point(),
+          source_dir=(source_dir %||% private$.model_source_dir()),
+          container_log_level=self$container_log_level,
+          code_location=self$code_location,
+          py_version=self$py_version,
+          framework_version=self$framework_version,
+          model_server_workers=model_server_workers,
+          sagemaker_session=self$sagemaker_session,
+          vpc_config=self$get_vpc_config(vpc_config_override),
+          dependencies=(dependencies %||% self$dependencies)
+        ),
+        kwargs
+      )
       return (do.call(SKLearnModel$new, kwargs))
     }
   ),
