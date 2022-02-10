@@ -294,6 +294,9 @@ test_that("test create model with custom image", {
 })
 
 test_that("test sklearn", {
+  skip_if_no_python()
+  skip_if_no_numpy()
+
   sms <- sagemaker_session()
   sklearn = SKLearn$new(
     entry_point=SCRIPT_PATH,
@@ -413,6 +416,9 @@ test_that("test fail gpu training", {
 })
 
 test_that("test model", {
+  skip_if_no_python()
+  skip_if_no_numpy()
+
   sms <- sagemaker_session()
   model = SKLearnModel$new(
     "s3://some/data.tar.gz",
