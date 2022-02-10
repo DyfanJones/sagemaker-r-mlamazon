@@ -286,6 +286,9 @@ test_that("test create model with custom image", {
 })
 
 test_that("test chainer", {
+  skip_if_no_python
+  skip_if_no_numpy()
+
   chainer = Chainer$new(
     entry_point=SCRIPT_PATH,
     role=ROLE,
@@ -320,6 +323,9 @@ test_that("test chainer", {
 })
 
 test_that("test model", {
+  skip_if_no_python()
+  skip_if_no_numpy()
+
   model = ChainerModel$new(
     "s3://some/data.tar.gz",
     role=ROLE,

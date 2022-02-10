@@ -250,6 +250,9 @@ test_that("test create model with custom image", {
 })
 
 test_that("test pytorch", {
+  skip_if_no_python()
+  skip_if_no_numpy()
+
   sms = sagemaker_session()
   pytorch = PyTorch$new(
     entry_point=SCRIPT_PATH,
@@ -291,6 +294,9 @@ test_that("test pytorch", {
 })
 
 test_that("test model", {
+  skip_if_no_python()
+  skip_if_no_numpy()
+
   model = PyTorchModel$new(
     MODEL_DATA,
     role=ROLE,
@@ -304,6 +310,9 @@ test_that("test model", {
 })
 
 test_that("test mms model", {
+  skip_if_no_python()
+  skip_if_no_numpy()
+
   model = PyTorchModel$new(
     MODEL_DATA,
     role=ROLE,
@@ -320,6 +329,9 @@ test_that("test mms model", {
 })
 
 test_that("test non mms model", {
+  skip_if_no_python()
+  skip_if_no_numpy()
+
   model = PyTorchModel$new(
     MODEL_DATA,
     role=ROLE,
@@ -336,6 +348,9 @@ test_that("test non mms model", {
 })
 
 test_that("test model image accelerator", {
+  skip_if_no_python()
+  skip_if_no_numpy()
+
   model = PyTorchModel$new(
     MODEL_DATA,
     role=ROLE,

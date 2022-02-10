@@ -129,6 +129,8 @@ test_that("test create model from estimator",{
 })
 
 test_that("test deploy model", {
+  skip_if_no_python()
+  skip_if_no_numpy()
   sms <- sagemaker_session()
 
   model = XGBoostModel$new(
