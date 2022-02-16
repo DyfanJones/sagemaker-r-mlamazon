@@ -22,7 +22,7 @@ Suggests:
     testthat,
     mockthat,
     reticulate,
-    sparsio
+    readsparse
 Remotes:
     DyfanJones/sagemaker-r-core,
     DyfanJones/sagemaker-r-common,

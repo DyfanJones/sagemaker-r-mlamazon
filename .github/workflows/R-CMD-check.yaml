@@ -36,7 +36,7 @@ jobs:
           pak::pkg_install("testthat")
           pak::pkg_install("mockthat")
           pak::pkg_install("crayon")
-          pak::pkg_install("sparsio")
+          pak::pkg_install("readsparse")
           pak::pkg_install("reticulate")
 
           # install sagemaker dev packages
