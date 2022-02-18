@@ -16,6 +16,10 @@ SKLearn = R6Class("SKLearn",
   inherit = sagemaker.mlcore::Framework,
   public = list(
 
+    #' @field .module
+    #' mimic python module
+    .module = "sagemaker.sklearn.estimator",
+
     #' @description This ``Estimator`` executes an Scikit-learn script in a managed
     #'              Scikit-learn execution environment, within a SageMaker Training Job. The
     #'              managed Scikit-learn environment is an Amazon-built Docker container

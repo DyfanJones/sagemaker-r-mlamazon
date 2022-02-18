@@ -1,7 +1,7 @@
 Package: sagemaker.mlframework
 Type: Package
 Title: sagemaker machine learning developed by amazon
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person("Dyfan", "Jones", email="dyfan.r.jones@gmail.com", role= c("aut", "cre")),
              person("Amazon.com, Inc.", role = "cph"))
 Description: `sagemaker` machine learning developed by amazon.

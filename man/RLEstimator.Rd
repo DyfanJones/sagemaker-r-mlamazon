@@ -17,6 +17,8 @@ Handle end-to-end training and deployment of custom RLEstimator code.
 \item{\code{COACH_LATEST_VERSION_MXNET}}{latest version of toolkit coach for mxnet}
 
 \item{\code{RAY_LATEST_VERSION}}{latest version of toolkit ray}
+
+\item{\code{.module}}{mimic python module}
 }
 \if{html}{\out{</div>}}
 }

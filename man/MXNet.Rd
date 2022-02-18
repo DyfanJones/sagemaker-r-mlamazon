@@ -13,6 +13,8 @@ Handle end-to-end training and deployment of custom MXNet code.
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{.LOWEST_SCRIPT_MODE_VERSION}}{Lowest MXNet version that can be executed}
+
+\item{\code{.module}}{mimic python module}
 }
 \if{html}{\out{</div>}}
 }

@@ -21,6 +21,10 @@ MXNet = R6Class("MXNet",
     #' Lowest MXNet version that can be executed
     .LOWEST_SCRIPT_MODE_VERSION = "1.3",
 
+    #' @field .module
+    #' mimic python module
+    .module = "sagemaker.mxnet.estimator",
+
     #' @description This ``Estimator`` executes an MXNet script in a managed MXNet
     #'              execution environment, within a SageMaker Training Job. The managed
     #'              MXNet environment is an Amazon-built Docker container that executes

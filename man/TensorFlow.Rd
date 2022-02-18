@@ -9,6 +9,13 @@ Handle end-to-end training and deployment of user-provided TensorFlow code.
 \section{Super classes}{
 \code{\link[sagemaker.mlcore:EstimatorBase]{sagemaker.mlcore::EstimatorBase}} -> \code{\link[sagemaker.mlcore:Framework]{sagemaker.mlcore::Framework}} -> \code{TensorFlow}
 }
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{.module}}{mimic python module}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{

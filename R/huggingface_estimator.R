@@ -14,6 +14,10 @@ HuggingFace = R6Class("HuggingFace",
   inherit = sagemaker.mlcore::Framework,
   public = list(
 
+    #' @field .module
+    #' mimic python module
+    .module = "sagemaker.huggingface.estimator",
+
     #' @description This ``Estimator`` executes a HuggingFace script in a managed execution environment.
     #'              The managed HuggingFace environment is an Amazon-built Docker container that executes
     #'              functions defined in the supplied ``entry_point`` Python script within a SageMaker

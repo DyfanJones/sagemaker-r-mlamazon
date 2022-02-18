@@ -38,6 +38,10 @@ Chainer = R6Class("Chainer",
     #'        to run the entry point.
     .additional_mpi_options = "sagemaker_additional_mpi_options",
 
+    #' @field .module
+    #' mimic python module
+    .module = "sagemaker.chainer.estimator",
+
     #' @description This ``Estimator`` executes an Chainer script in a managed Chainer
     #'              execution environment, within a SageMaker Training Job. The managed
     #'              Chainer environment is an Amazon-built Docker container that executes

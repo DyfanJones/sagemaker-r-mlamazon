@@ -19,6 +19,10 @@ XGBoost = R6Class("XGBoost",
   inherit = sagemaker.mlcore::Framework,
   public = list(
 
+    #' @field .module
+    #' mimic python module
+    .module = "sagemaker.xgboost.estimator",
+
     #' @description This ``Estimator`` executes an XGBoost based SageMaker Training Job.
     #'              The managed XGBoost environment is an Amazon-built Docker container thatexecutes functions
     #'              defined in the supplied ``entry_point`` Python script.

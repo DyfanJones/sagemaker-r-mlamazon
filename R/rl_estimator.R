@@ -72,6 +72,10 @@ RLEstimator = R6Class("RLEstimator",
     #' latest version of toolkit ray
     RAY_LATEST_VERSION = "1.6.0",
 
+    #' @field .module
+    #' mimic python module
+    .module = "sagemaker.rl.estimator",
+
     #' @description Creates an RLEstimator for managed Reinforcement Learning (RL).
     #'              It will execute an RLEstimator script within a SageMaker Training Job. The managed RL
     #'              environment is an Amazon-built Docker container that executes functions defined in the

@@ -22,6 +22,8 @@ on each instance.}
 
 \item{\code{.additional_mpi_options}}{String of options to the 'mpirun' command used
 to run the entry point.}
+
+\item{\code{.module}}{mimic python module}
 }
 \if{html}{\out{</div>}}
 }

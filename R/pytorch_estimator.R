@@ -18,6 +18,10 @@ PyTorch = R6Class("PyTorch",
   inherit = sagemaker.mlcore::Framework,
   public = list(
 
+    #' @field .module
+    #' mimic python module
+    .module = "sagemaker.pytorch.estimator",
+
     #' @description This ``Estimator`` executes an PyTorch script in a managed PyTorch
     #'              execution environment, within a SageMaker Training Job. The managed
     #'              PyTorch environment is an Amazon-built Docker container that executes

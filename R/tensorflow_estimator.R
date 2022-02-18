@@ -18,6 +18,10 @@ TensorFlow = R6Class("TensorFlow",
   inherit = sagemaker.mlcore::Framework,
   public = list(
 
+    #' @field .module
+    #' mimic python module
+    .module = "sagemaker.tensorflow.estimator",
+
     #' @description Initialize a ``TensorFlow`` estimator.
     #' @param py_version (str): Python version you want to use for executing your model training
     #'              code. Defaults to ``None``. Required unless ``image_uri`` is provided.
