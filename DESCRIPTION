@@ -11,6 +11,7 @@ Imports:
     jsonlite,
     methods,
     processx,
+    fs,
     R6,
     sagemaker.core,
     sagemaker.common,

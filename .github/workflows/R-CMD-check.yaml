@@ -21,7 +21,7 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: install system dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get install protobuf-compiler libprotobuf-dev libprotoc-dev
 
@@ -35,15 +35,16 @@ jobs:
           pak::pkg_install("lgr")
           pak::pkg_install("jsonlite")
           pak::pkg_install("httr")
+          pak::pkg_install("fs")
 
           # install cran suggest
           pak::pkg_install("testthat")
           pak::pkg_install("mockthat")
           pak::pkg_install("crayon")
           pak::pkg_install("Matrix")
+          pak::pkg_install("RProtoBuf")
           pak::pkg_install("readsparse")
           pak::pkg_install("reticulate")
-          pak::pkg_install("RProtoBuf")
 
           # install sagemaker dev packages
           pak::pkg_install("dyfanjones/sagemaker-r-core")
