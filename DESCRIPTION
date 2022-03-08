@@ -1,7 +1,7 @@
 Package: sagemaker.mlframework
 Type: Package
 Title: sagemaker machine learning developed by amazon
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: c(person("Dyfan", "Jones", email="dyfan.r.jones@gmail.com", role= c("aut", "cre")),
              person("Amazon.com, Inc.", role = "cph"))
 Description: `sagemaker` machine learning developed by amazon.
@@ -32,6 +32,16 @@ Encoding: UTF-8
 RoxygenNote: 7.1.2
 Collate:
     'r_utils.R'
+    'amazon_factorization_machines.R'
+    'amazon_ipinsights.R'
+    'amazon_kmeans.R'
+    'amazon_knn.R'
+    'amazon_lda.R'
+    'amazon_linear_learner.R'
+    'amazon_ntm.R'
+    'amazon_object2vec.R'
+    'amazon_pca.R'
+    'amazon_randomcutforest.R'
     'automl_candidate_estimator.R'
     'automl_automl.R'
     'chainer_default.R'

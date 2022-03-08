@@ -5,3 +5,16 @@
 list.append <- function (.data, ...) {
   if (is.list(.data)) c(.data, list(...)) else c(.data, ..., recursive = FALSE)
 }
+
+is_subset = function(A, B){
+  all(unique(A) %in% unique(B))
+}
+
+fs_path = function(...){
+  return(as.character(fs::path(...)))
+}
+
+join_path = function(...){
+  args = list(...)
+  paste(trimws(args, whitespace="/"), collapse="/")
+}
