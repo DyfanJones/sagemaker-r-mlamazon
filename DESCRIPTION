@@ -23,6 +23,7 @@ Suggests:
     testthat,
     mockthat,
     reticulate,
+    RProtoBuf,
     readsparse
 Remotes:
     DyfanJones/sagemaker-r-core,
